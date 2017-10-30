@@ -4,8 +4,4 @@
 _By: Santelices, Andrew P. | Talan, Wesly Kate N._
 
 After cloning: 
-Make a new virtual environment inside the current folder and paste the following folders from _venv_ folder:
-  1. lib
-  2. lib64
-  3. nltk_data
-  to your new virtual environment folder. And then, delete _venv_ folder.
+[Create a new virtual environment](https://docs.python.org/3/library/venv.html) inside the current folder and paste all folders from _venv_ folder to your new virtual environment folder. And then, delete _venv_ folder.
