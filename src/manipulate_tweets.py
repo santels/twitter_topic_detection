@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import TweetTokenizer
 
 
-tweets_data_path = "data/tweets_data_2.txt"
+tweets_data_path = "data/tweets_data.txt"
 
 def load_tweets_data(path):
     tweets_data = []
