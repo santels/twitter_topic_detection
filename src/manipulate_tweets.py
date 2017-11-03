@@ -7,8 +7,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import TweetTokenizer
 
 
-tweets_data_path = "data/tweets_data.txt"
-
 def load_tweets_data(path):
     tweets_data = []
     tweets_file = open(path, "r")
@@ -67,6 +65,7 @@ def remove_mentions(text):
 
 
 if __name__ == '__main__':
+    tweets_data_path = "data/tweets_data.txt"
     tweets_data = load_tweets_data(tweets_data_path)
     sample_tweets = map(lambda tweet: preprocess_tweet(tweet['text']), tweets_data)
     sample_tweets = [i for i in sample_tweets]
