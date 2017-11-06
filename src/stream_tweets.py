@@ -21,8 +21,9 @@ class TweetStreamListener(StreamListener):
     """
 
     def on_status(self, status):
-        """ Retrieves tweet data and writes to file. """
-
+        """ 
+        Retrieves tweet data and writes it to file. 
+        """
         try:
 
             # Save streamed tweets to "data" folder
@@ -42,14 +43,16 @@ class TweetStreamListener(StreamListener):
         print("[ERROR] {}".format(status))
 
     def on_limit(self, track):
-        """ Called when limitation notice arrives on stream. """
+        """ 
+        Called when limitation notice arrives on stream.
+        """
         print("[WARNING] Limitation notice received: {}".format(track))
 
 
 if __name__ == '__main__':
 
-
     print("Time started: {}".format(datetime.now()))
+
     #This handles Twitter authetification and the connection to Twitter Streaming API
     tsl = TweetStreamListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
