@@ -8,6 +8,9 @@ from nltk.tokenize import TweetTokenizer
 
 
 def load_tweets_data(path):
+    """
+    Loads tweet data from the specified path.
+    """
     tweets_data = []
     tweets_file = open(path, "r")
     for line in tweets_file:
@@ -21,6 +24,15 @@ def load_tweets_data(path):
 
 
 def preprocess_tweet(text):
+    """
+    Preprocesses tweets by:
+    1. Cleaning the text:
+        1.1 Removes URLs
+        1.2 Removes emojis and special characters
+        1.3 Removes "RT"'s and @ symbols indicating mentions
+    2. Removing stopwords and most common unnecessary words.
+    3. Tokenizing the text by splitting it into tokens.
+    """
     tokenizer = TweetTokenizer()
 
     text = clean_tweet(text)
@@ -28,7 +40,7 @@ def preprocess_tweet(text):
     tokens = tokenizer.tokenize(text)
 
     # Removes stopwords in a tweet
-    filtered_tokens = [w for w in tokens if not w in stop_words]
+    filtered_tokens = [w for w in tokens if w not in stop_words]
 
     return filtered_tokens
 
@@ -49,7 +61,7 @@ def remove_emojis(text):
         "\U0001F1E0-\U0001F1FF"  # flags (iOS)
         "\u261E"                 # ☞ additional
         "\u2026"                 # ellipsis
-   "]+", flags=re.UNICODE)
+    "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', text)
 
 
@@ -63,9 +75,8 @@ def remove_mentions(text):
     return re.sub(regex, '', text)
 
 
-
 if __name__ == '__main__':
-    tweets_data_path = "data/tweets_data.txt"
+    tweets_data_path = "data/tweets_data_2.txt"
     tweets_data = load_tweets_data(tweets_data_path)
     sample_tweets = map(lambda tweet: preprocess_tweet(tweet['text']), tweets_data)
     sample_tweets = [i for i in sample_tweets]
