@@ -23,19 +23,25 @@ def load_tweets_data(path):
     return tweets_data
 
 
-def preprocess_tweet(text):
+def preprocess_tweet(tweet_data):
     """
-    Preprocesses tweets by:
-    1. Cleaning the text:
-        1.1 Removes URLs
-        1.2 Removes emojis and special characters
-        1.3 Removes "RT"'s and @ symbols indicating mentions
-    2. Removing stopwords and most common unnecessary words.
-    3. Tokenizing the text by splitting it into tokens.
+    Preprocesses tweets by cleaning the text:
+        1. Removes URLs
+        2. Removes emojis and special characters
+        3. Removes "RT"'s and @ symbols indicating mentions
+    """
+    tweets = [clean_tweet(t["text"]) for t in tweet_data]
+    return tweets
+
+
+def tokenize_tweet(text):
+    """
+    Removes stopwords and most common unnecessary words and
+    tokenizes the text by splitting it into tokens using NLTK's
+    TweetTokenizer module.
     """
     tokenizer = TweetTokenizer()
 
-    text = clean_tweet(text)
     stop_words = stopwords.words('english') + list(string.punctuation)
     tokens = tokenizer.tokenize(text)
 
@@ -78,8 +84,8 @@ def remove_mentions(text):
 if __name__ == '__main__':
     tweets_data_path = "data/tweets_data_2.txt"
     tweets_data = load_tweets_data(tweets_data_path)
-    sample_tweets = map(lambda tweet: preprocess_tweet(tweet['text']), tweets_data)
-    sample_tweets = [i for i in sample_tweets]
+    sample_tweets = preprocess_tweet(tweet_data)
+    sample_tweets = [tokenize_tweet(i) for i in sample_tweets]
 
     for i, t in enumerate(sample_tweets[10:21]):
         print("{}. {}".format(i + 1, t))
