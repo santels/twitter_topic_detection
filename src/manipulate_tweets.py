@@ -4,7 +4,6 @@ import string
 import pandas as pd
 
 from nltk.corpus import stopwords
-from nltk.tokenize import TweetTokenizer
 
 
 def load_tweets_data(path):
@@ -34,21 +33,11 @@ def preprocess_tweet(tweet_data):
     return tweets
 
 
-def tokenize_tweet(text):
+def get_stopwords():
     """
-    Removes stopwords and most common unnecessary words and
-    tokenizes the text by splitting it into tokens using NLTK's
-    TweetTokenizer module.
+    Returns list of stopwords and punctuations to be removed.
     """
-    tokenizer = TweetTokenizer()
-
-    stop_words = stopwords.words('english') + list(string.punctuation)
-    tokens = tokenizer.tokenize(text)
-
-    # Removes stopwords in a tweet
-    filtered_tokens = [w for w in tokens if w not in stop_words]
-
-    return filtered_tokens
+    return stopwords.words('english') + list(string.punctuation)
 
 
 def clean_tweet(text):
@@ -79,14 +68,3 @@ def remove_link(text):
 def remove_mentions(text):
     regex = r'(RT )*@[^\s]*'
     return re.sub(regex, '', text)
-
-
-if __name__ == '__main__':
-    tweets_data_path = "data/tweets_data_2.txt"
-    tweets_data = load_tweets_data(tweets_data_path)
-    sample_tweets = preprocess_tweet(tweet_data)
-    sample_tweets = [tokenize_tweet(i) for i in sample_tweets]
-
-    for i, t in enumerate(sample_tweets[10:21]):
-        print("{}. {}".format(i + 1, t))
-    print("Number of tweets:", len(tweets_data))
