@@ -21,8 +21,8 @@ class TweetStreamListener(StreamListener):
     """
 
     def on_status(self, status):
-        """ 
-        Retrieves tweet data and writes it to file. 
+        """
+        Retrieves tweet data and writes it to file.
         """
         try:
 
@@ -43,7 +43,7 @@ class TweetStreamListener(StreamListener):
         print("[ERROR] {}".format(status))
 
     def on_limit(self, track):
-        """ 
+        """
         Called when limitation notice arrives on stream.
         """
         print("[WARNING] Limitation notice received: {}".format(track))
