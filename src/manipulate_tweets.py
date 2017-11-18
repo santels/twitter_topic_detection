@@ -96,7 +96,7 @@ class ManipulateTweet:
 
 if __name__ == '__main__':
     c = ManipulateTweet()
-    tweets_data_path = "data/tweets_data_2.txt"
+    tweets_data_path = "data/tweets_data.txt"
     tweets_data = c.load_tweets_data(tweets_data_path)
     documents_3 = c.preprocess_tweet(tweets_data)
     documents_3 = documents_3 * 10

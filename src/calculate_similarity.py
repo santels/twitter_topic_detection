@@ -32,10 +32,13 @@ class Similarity:
         similarity measure to calculate document similarities.
         """
         # Get the sum of consecutive integers for the size of the array
-        doc_sim = np.zeros([self.matrix.shape[0] - 1, self.matrix.shape[0] - 1])
-        for i in range(self.matrix.shape[0] - 1):
-            for j in range(i + 1, self.matrix.shape[0]):
-                doc_sim[i, j - 1] = self._soft_cosine_measure(
+        doc_sim = np.zeros([self.matrix.shape[0], self.matrix.shape[0]])
+        for i in range(self.matrix.shape[0]):
+            for j in range(i, self.matrix.shape[0]):
+                if i == j:
+                    doc_sim[i, j] = 1
+                else:
+                    doc_sim[i, j] = self._soft_cosine_measure(
                         self.matrix.getrow(i), self.matrix.getrow(j))
         return doc_sim
 
@@ -122,9 +125,9 @@ class Similarity:
         Gets derivationally related word forms as noun synsets of a given synset
         to measure its similarity to other terms.
         """
-        related = [rel.synset() for lemma in synset.lemmas().__iter__()
-                                for rel in lemma.derivationally_related_forms().__iter__()
-                                if rel.synset().pos() == 'n']
+        related = [rel.synset() for lemma in synset.lemmas().__iter__()    \
+                for rel in lemma.derivationally_related_forms().__iter__() \
+                if rel.synset().pos() == 'n']
         return None if related == [] else related
 
 
@@ -155,7 +158,6 @@ class Similarity:
         if score is None:
             score = 0
         else:
-            print(term1, term2, score)
             self._synset_pairs[tuple( sorted((term1, term2)) )] = score
         return score
 
