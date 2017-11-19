@@ -34,7 +34,7 @@ class Similarity:
         # Get the sum of consecutive integers for the size of the array
         doc_sim = np.zeros([self.matrix.shape[0], self.matrix.shape[0]])
         for i in range(self.matrix.shape[0]):
-            for j in range(i, self.matrix.shape[0]):
+            for j in range(self.matrix.shape[0]):
                 if i == j:
                     doc_sim[i, j] = 1
                 else:
@@ -50,11 +50,15 @@ class Similarity:
         for i in range(v1.shape[0]):
             for j in range(v1.shape[0]):
 
-                feature_score = self._get_feature_score(self._features[i],
-                    self._features[j])
+                # Same terms has 1.0 similarity.
+                if self._features[i] == self._features[j]:
+                    feature_score = 1
+                else:
+                    feature_score = self._get_feature_score(self._features[i],
+                        self._features[j])
 
-                if feature_score <= THRESHOLD:
-                    feature_score = 0
+                    if feature_score <= THRESHOLD:
+                        feature_score = 0
 
                 sum += v1[i] * v2[j] * feature_score
         return sum
@@ -80,12 +84,6 @@ class Similarity:
         it gets its related nouns/forms.
         <reference github repo>
         """
-        # Checks whether the term pairs have already been calculated.
-        if self._synset_pairs:
-            for syn_pair in self._synset_pairs.keys().__iter__():
-                if tuple( sorted((term1, term2)) ) == syn_pair:
-                    return syn_pair
-
         synset_list1 = wn.synsets(term1)
         synset_list2 = wn.synsets(term2)
         max_score = -1.0
@@ -99,26 +97,18 @@ class Similarity:
                 for j in synset_list2.__iter__():
                     score = 1.0 / (i.shortest_path_distance(j, True) + 1)
                     if score is not None and score > max_score:
-                        score = max_score
+                        max_score = score
                         best_pair = [i, j]
-
 
             if (best_pair[0] is not None) and \
                     (best_pair[0].pos() not in ('n', 'v')):
                 best_pair[0] = self._get_related_nouns(best_pair[0])
 
-                if best_pair[0] is not None:
-                    best_pair[0] = best_pair[0][0]
-
             if (best_pair[1] is not None) and \
                     (best_pair[1].pos() not in ('n', 'v')):
                 best_pair[1] = self._get_related_nouns(best_pair[1])
 
-                if best_pair[1] is not None:
-                    best_pair[1] = best_pair[1][0]
-
             return tuple(best_pair)
-
 
     def _get_related_nouns(self, synset):
         """
@@ -128,8 +118,7 @@ class Similarity:
         related = [rel.synset() for lemma in synset.lemmas().__iter__()    \
                 for rel in lemma.derivationally_related_forms().__iter__() \
                 if rel.synset().pos() == 'n']
-        return None if related == [] else related
-
+        return None if related == [] else related[0]
 
     def _get_feature_score(self, term1, term2):
         """
@@ -137,28 +126,23 @@ class Similarity:
         lists, gets all similarity scores of each element and returns the best
         score.
         """
-
-        # Same terms has 1.0 similarity.
-        if term1 == term2:
-            return 1
+        # Checks if synset pair had already been calculated.
+        if tuple( sorted((term1, term2)) ) in self._synset_pairs:
+            return self._synset_pairs[tuple( sorted((term1, term2)) )]
 
         syn1, syn2 = self._get_synsets(term1, term2)
 
         # If one/both synset/s is/are not found in WordNet. If it's not found, its
         # value is None, otherwise, a Synset object.
-        if all((syn1, syn2)) == False:
+        if syn1 is None or syn2 is None:
             return 0
-
-        # Checks if synset pair had already been calculated.
-        if tuple( sorted((term1, term2)) ) in self._synset_pairs:
-            return self._synset_pairs[tuple( sorted((term1, term2)) )]
 
         score = wn.wup_similarity(syn1, syn2)
 
         if score is None:
             score = 0
-        else:
-            self._synset_pairs[tuple( sorted((term1, term2)) )] = score
+
+        self._synset_pairs[tuple( sorted((term1, term2)) )] = score
         return score
 
 
