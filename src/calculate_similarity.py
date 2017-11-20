@@ -33,13 +33,19 @@ class Similarity:
         """
         # Get the sum of consecutive integers for the size of the array
         doc_sim = np.zeros([self.matrix.shape[0], self.matrix.shape[0]])
+        doc_pairs = defaultdict(float)
         for i in range(self.matrix.shape[0]):
             for j in range(self.matrix.shape[0]):
-                if i == j:
-                    doc_sim[i, j] = 1
+                sorted_indices = tuple( sorted((i,j)) )
+                if sorted_indices in doc_pairs:
+                    doc_sim[i, j] = doc_pairs[sorted_indices]
                 else:
-                    doc_sim[i, j] = self._soft_cosine_measure(
-                        self.matrix.getrow(i), self.matrix.getrow(j))
+                    if i == j:
+                        doc_sim[i, j] = 1
+                    else:
+                        doc_sim[i, j] = self._soft_cosine_measure(
+                            self.matrix.getrow(i), self.matrix.getrow(j))
+                        doc_pairs[sorted_indices] = doc_sim[i, j]
         return doc_sim
 
     def _multiply_elements(self, v1, v2):
@@ -126,8 +132,9 @@ class Similarity:
         lists, gets all similarity scores of each element and returns the best
         score.
         """
+        sorted_terms = tuple( sorted((term1, term2)) )
         # Checks if synset pair had already been calculated.
-        if tuple( sorted((term1, term2)) ) in self._synset_pairs:
+        if sorted_terms in self._synset_pairs:
             return self._synset_pairs[tuple( sorted((term1, term2)) )]
 
         syn1, syn2 = self._get_synsets(term1, term2)
@@ -142,7 +149,7 @@ class Similarity:
         if score is None:
             score = 0
 
-        self._synset_pairs[tuple( sorted((term1, term2)) )] = score
+        self._synset_pairs[sorted_terms] = score
         return score
 
 
