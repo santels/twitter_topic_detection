@@ -1,10 +1,10 @@
 import re
 import json
-import string
 
-from nltk.corpus import stopwords
 from spacy.lang.en import English
 from spacy.matcher import Matcher
+
+from stop_words import STOP_WORDS
 
 
 class ManipulateTweet:
@@ -61,7 +61,7 @@ class ManipulateTweet:
         tokens = self.nlp(tweet)
         self.matcher(tokens)
         tokens = [i.norm_ for i in tokens if not i.is_punct and \
-                i.norm_ not in set(stopwords.words('english')) and \
+                i.norm_ not in STOP_WORDS and \
                 "'" != i.norm_[0] and \
                 i.is_ascii and \
                 not i.is_space]

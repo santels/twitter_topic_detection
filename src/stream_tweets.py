@@ -25,7 +25,6 @@ class TweetStreamListener(StreamListener):
         Retrieves tweet data and writes it to file.
         """
         try:
-
             # Save streamed tweets to "data" folder
             with open('data/tweets_data.txt', 'a') as td:
                 # If tweet language is English, save
