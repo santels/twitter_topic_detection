@@ -31,7 +31,7 @@ def run():
 
     sim = Similarity(documents2, manip_tweet)
     score_matrix = sim.similarity()
-    matrix = mcl.cluster(score_matrix, iter_count=15)
+    matrix = mcl.cluster(score_matrix, iter_count=100)
 
     print("Features:\n", sim._features)
     print("Matrix:\n", score_matrix)

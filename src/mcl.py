@@ -33,17 +33,17 @@ def check_state(matrix):
     """
     def check_column(column):
         val = 0
-        for i in nditer(column):
+        for i in np.nditer(column):
             if i != 0:
                 val = i
                 break
 
-        for i in nditer(column):
+        for i in np.nditer(column):
             if i != 0 and i != val:
                 return False
         return True
 
-    return all(check_column(matrix[:, i]) for i in matrix)
+    return all(check_column(matrix[:, i]) for i in range(matrix.shape[1]))
 
 
 def cluster(matrix, exp_power=2, inf_power=2, iter_count=10):
