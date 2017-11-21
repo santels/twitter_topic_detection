@@ -18,8 +18,8 @@ def run():
                   "The dog is barking.",#"The sun is bright.",
                   "The sun in the sky is bright.",
                   "We can see the shining sun, the bright sun. #Outdoors",
-                 # "The cat is meowing back at the dog.",
-                 # "The dog and cat fought each other."
+                  "The cat is meowing back at the dog.",
+                  "The dog and cat fought each other."
                   ]
 
     #tweets_data_path = "data/tweets_data.txt"
@@ -31,12 +31,11 @@ def run():
 
     sim = Similarity(documents2, manip_tweet)
     score_matrix = sim.similarity()
-    matrix = mcl.cluster(score_matrix, iter_count=10)
+    matrix = mcl.cluster(score_matrix, iter_count=15)
 
-    print("TFIDF Matrix:\n", sim.matrix.todense())
     print("Features:\n", sim._features)
     print("Matrix:\n", score_matrix)
-    print("Result:\n", matrix)
+    print("MCL Result:\n", matrix)
 
 
 
