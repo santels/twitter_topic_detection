@@ -86,9 +86,8 @@ class Similarity:
     def _get_synsets(self, term1, term2):
         """
         Gets best synsets of each term based on the highest path similarity
-        among all pairs compared; if the synset's pos() is not at noun or verb,
+        among all pairs compared; if the synset's pos() is not a noun or verb,
         it gets its related nouns/forms.
-        <reference github repo>
         """
         synset_list1 = wn.synsets(term1)
         synset_list2 = wn.synsets(term2)
@@ -97,7 +96,6 @@ class Similarity:
         if (len(synset_list1) == 0) or (len(synset_list2) == 0):
             return None, None
         else:
-           # best_pair = [synset_list1[0], synset_list2[0]]
             best_pair = [None, None]
             for i in synset_list1.__iter__():
                 for j in synset_list2.__iter__():
@@ -121,10 +119,13 @@ class Similarity:
         Gets derivationally related word forms as noun synsets of a given synset
         to measure its similarity to other terms.
         """
-        related = [rel.synset() for lemma in synset.lemmas().__iter__()    \
-                for rel in lemma.derivationally_related_forms().__iter__() \
-                if rel.synset().pos() == 'n']
-        return None if related == [] else related[0]
+        related = None
+        lemmas = synset.lemmas()
+        if len(lemmas) > 0:
+            derived = lemmas[0].derivationally_related_forms()
+            if len(derived) > 0:
+                related = derived[0].synset()
+        return related
 
     def _get_feature_score(self, term1, term2):
         """
@@ -133,6 +134,7 @@ class Similarity:
         score.
         """
         sorted_terms = tuple( sorted((term1, term2)) )
+
         # Checks if synset pair had already been calculated.
         if sorted_terms in self._synset_pairs:
             return self._synset_pairs[tuple( sorted((term1, term2)) )]
@@ -155,7 +157,6 @@ class Similarity:
 
 if __name__ == '__main__':
     tweets_data_path = "data/tweets_data.txt"
-    #tweets_data = mt.load_tweets_data(tweets_data_path)
     documents = ["Praise the fucking sun!",
                  "Daenerys is the mother of dragons.",
                  "Icarus flew too close to the sun.",
