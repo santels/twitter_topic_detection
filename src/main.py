@@ -5,14 +5,16 @@ from manipulate_tweets import ManipulateTweet
 
 
 def run():
-    documents = ["Praise the fucking sun!",
-                 "Daenerys is the mother of dragons.",
-                 "Icarus flew too close to the sun.",
-                 "Damn, Icarus got it tough, man.",
-                 "Jon Fucking Snow fucked his aunt, Daenerys!",
-                 "You're a wizard, Harry.",
-                 "Hold the door, Hodor.",
-                 "A quick brown fox jumps over the lazy dog."]
+    documents = [
+        "Apple is looking at buying U.K. startup for $1 billion",
+        "Autonomous cars shift insurance liability toward manufacturers",
+        "San Francisco considers banning sidewalk delivery robots",
+        "London is a big city in the United Kingdom.",
+        "Where are you?",
+        "Who is the president of France?",
+        "What is the capital of the United States?",
+        "When was Barack Obama born?"
+    ]
 
     documents2 = ["The sky is blue. #Outdoors",
                   "The dog is barking.",#"The sun is bright.",
@@ -29,7 +31,8 @@ def run():
     #tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     #documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    sim = Similarity(documents2, manip_tweet)
+    tokens = manip_tweet.tokenize_tweets(documents2)
+    sim = Similarity(tokens)
     score_matrix = sim.similarity()
     matrix = mcl.cluster(score_matrix, iter_count=100)
     clusters = mcl.get_clusters(matrix)

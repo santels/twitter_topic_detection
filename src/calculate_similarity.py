@@ -6,7 +6,7 @@ import math
 import numpy as np
 
 
-THRESHOLD = 0.4
+THRESHOLD = 0.5
 
 
 class Similarity:
@@ -15,14 +15,14 @@ class Similarity:
     using WordNet's wup_similarity function for getting feature similarity
     score.
     """
-    def __init__(self, document, manip_tweet):
+    def __init__(self, tokens):
         """
         Similarity class constructor.
         `document` - list of documents to be analyzed.
         `manip_tweet` - class object instance of manipulate tweet module.
         """
-        self.tfidf = TfidfVectorizer(tokenizer=manip_tweet.tokenize)
-        self.matrix = self.tfidf.fit_transform(document)
+        self.tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
+        self.matrix = self.tfidf.fit_transform(tokens.keys())
         self._features = self.tfidf.get_feature_names()
         self._synset_pairs = defaultdict(float)
 
