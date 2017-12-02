@@ -1,9 +1,10 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.corpus import wordnet as wn
-from collections import defaultdict
-
 import math
 import numpy as np
+
+from collections import defaultdict
+from nltk.corpus import wordnet as wn
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 
 THRESHOLD = 0.5

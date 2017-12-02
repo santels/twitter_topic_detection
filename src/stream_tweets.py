@@ -1,13 +1,13 @@
 import json
 
-from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
+from tweepy.streaming import StreamListener
 
-from urllib3.exceptions import ProtocolError
-from http.client import IncompleteRead
 from datetime import datetime
+from http.client import IncompleteRead
 from time import clock
+from urllib3.exceptions import ProtocolError
 
 access_token = "124689202-gdkYDTBPdJbmfhi2kDR7E87drsun0sMhiKhdPvlI"
 access_token_secret = "sW6LYAW6ZDuC4PtDbKFWN4uFaJYQV2PbZZ5fOJYBzp9uw"
