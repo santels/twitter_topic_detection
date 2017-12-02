@@ -24,23 +24,25 @@ def run():
                   "The dog and cat fought each other."
                   ]
 
-    #tweets_data_path = "data/tweets_data.txt"
+    tweets_data_path = "data/tweets_data_3.txt"
 
     manip_tweet = ManipulateTweet()
 
-    #tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
-    #documents_3 = manip_tweet.preprocess_tweet(tweets_data)
+    tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
+    documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    tokens = manip_tweet.tokenize_tweets(documents2)
+    tokens = manip_tweet.tokenize_tweets(documents_3)
     sim = Similarity(tokens)
-    score_matrix = sim.similarity()
-    matrix = mcl.cluster(score_matrix, iter_count=100)
-    clusters = mcl.get_clusters(matrix)
+    #score_matrix = sim.similarity()
+    #matrix = mcl.cluster(score_matrix, iter_count=100)
+    #clusters = mcl.get_clusters(matrix)
 
     print("Features:\n", sim._features)
-    print("Matrix:\n", score_matrix)
-    print("MCL Result:\n", matrix)
+    #print("Matrix:\n", score_matrix)
+    #print("MCL Result:\n", matrix)
     print("Clusters: \n", clusters)
+    print("No. of Clusters: \n", len(clusters))
+    print("No. of Features: \n", len(sim._features))
 
 
 

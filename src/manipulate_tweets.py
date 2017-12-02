@@ -3,7 +3,6 @@ import json
 
 from collections import OrderedDict
 from spacy.lang.en import English
-from spacy.matcher import Matcher
 
 from stop_words import STOP_WORDS
 
@@ -15,9 +14,6 @@ class ManipulateTweet:
 
     def __init__(self):
         self.nlp = English()
-        self.matcher = Matcher(self.nlp.vocab)
-        self.matcher.add('HASHTAG', self._merge_hashtags,
-                [{'ORTH': '#'}, {'IS_ASCII': True}])
 
     def load_tweets_data(self, path):
         """
@@ -44,15 +40,15 @@ class ManipulateTweet:
         tweets = [self._clean_tweet(t["text"]) for t in tweet_data.__iter__()]
         return tweets
 
-    def _merge_hashtags(self, matcher, doc, i, matches):
+    def _merge_hashtags(self, tweet, tokens):
         """
-        Utility function to merge hashtag and words next to it as tokens.
-        Code located in spacy docs:
-        https://spacy.io/usage/linguistic-features#example3
+        Utility function to find and merge hashtag and words next to it as
+        tokens.
         """
-        match_id, start, end = matches[i]
-        span = doc[start : end]
-        span.merge() # merge hashtag
+        indices = [match.span() for match in re.finditer('#\w+', tweet, flags=re.IGNORECASE)]
+        for start, end in indices:
+            tokens.merge(start_idx=start, end_idx=end)
+        return tokens
 
     def _tokenize(self, tweet):
         """
@@ -60,7 +56,7 @@ class ManipulateTweet:
         tokens.
         """
         tokens = self.nlp(tweet)
-        self.matcher(tokens)
+        tokens = self._merge_hashtags(tweet, tokens)
         tokens = [i.norm_ for i in tokens if not i.is_punct and \
                 i.norm_ not in STOP_WORDS and \
                 "'" != i.norm_[0] and \
@@ -84,6 +80,7 @@ class ManipulateTweet:
         text = self._remove_link(text)
         text = self._remove_emojis(text)
         text = self._remove_mentions(text)
+        text = self._remove_html_characters(text)
 
         return text
 
@@ -106,13 +103,16 @@ class ManipulateTweet:
         regex = r'(RT )*@[^\s]*'
         return re.sub(regex, '', text)
 
+    def _remove_html_characters(self, text):
+        regex = r'&(.*);'
+        return re.sub(regex, '', text)
+
 
 if __name__ == '__main__':
     c = ManipulateTweet()
-  #  tweets_data_path = "data/tweets_data.txt"
-  #  tweets_data = c.load_tweets_data(tweets_data_path)
-  #  documents_3 = c.preprocess_tweet(tweets_data)
-  #  documents_3 = documents_3 * 10
+    tweets_data_path = "data/tweets_data_3.txt"
+    tweets_data = c.load_tweets_data(tweets_data_path)
+    documents = c.preprocess_tweet(tweets_data)
     documents3 = [
         "Apple is looking at buying U.K. startup for $1 billion",
         "Autonomous cars shift insurance liability toward manufacturers",
@@ -131,9 +131,12 @@ if __name__ == '__main__':
                   "The dog and cat fought each other."
                   ]
     x = []
-    for i in documents3.__iter__():
+    for i in documents.__iter__():
         g = c._tokenize(i)
         if g is not None:
             x.append(g)
 
-    print(x)
+    for i in x[:15].__iter__():
+        print(i)
+
+    print("Length: {}".format(len(x)))
