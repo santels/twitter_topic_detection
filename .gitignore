@@ -1,4 +1,5 @@
 bin/
 __pycache__
+*.pyc
 src/data/tweets_data_3.txt
-venv/nltk_data/corpora/wordnet.zip
+venv/nltk_data/corpora/*.zip
