@@ -70,7 +70,7 @@ def cluster(matrix, exp_power=2, inf_power=2, iter_count=10,
     """
     matrix = normalize(matrix)
     for i in range(iter_count):
-        print("Iteration {}".format(i))
+        #print("Iteration {}".format(i))
 
         prev_mat = matrix.copy() # Copies last matrix for convergence check.
         matrix = expand(matrix, exp_power)
@@ -80,7 +80,7 @@ def cluster(matrix, exp_power=2, inf_power=2, iter_count=10,
             matrix = prune(matrix, pr_threshold)
 
         if check_convergence(matrix, prev_mat):
-            print("Convergence found. Stopping loop...")
+            #print("Convergence found. Stopping loop...")
             break
 
     return matrix

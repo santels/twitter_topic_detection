@@ -1,9 +1,11 @@
+import re
 import math
 import numpy as np
 
 from collections import defaultdict
 from nltk.corpus import wordnet as wn
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 
@@ -26,6 +28,7 @@ class Similarity:
         self.matrix = self.tfidf.fit_transform(tokens.keys())
         self._features = self.tfidf.get_feature_names()
         self._synset_pairs = defaultdict(float)
+        self._synsets = {}
 
     def similarity(self):
         """
@@ -48,6 +51,12 @@ class Similarity:
                             self.matrix.getrow(i), self.matrix.getrow(j))
                         doc_pairs[sorted_indices] = doc_sim[i, j]
         return doc_sim
+
+    def cos_similarity(self):
+        '''
+        Cosine similarity measure of documents. For testing purposes.
+        '''
+        return cosine_similarity(self.matrix, self.matrix)
 
     def _multiply_elements(self, v1, v2):
         """
@@ -140,11 +149,32 @@ class Similarity:
         if sorted_terms in self._synset_pairs:
             return self._synset_pairs[tuple( sorted((term1, term2)) )]
 
-        syn1, syn2 = self._get_synsets(term1, term2)
+        # If a term contains a hashtag, it automatically does not contain
+        # synsets, thus, returning 0.
+        if any("#" in term for term in (term1, term2)):
+            return 0
+
+        # If a term has does not fully contains alpha characters, it has no
+        # synsets.
+        if any(re.search(r'^([a-zA-Z]+[-]?[a-zA-Z]+)$', term) is None for term in (term1, term2)):
+            return 0
+
+        # If the synset has already been captured. Checks the cache to get the
+        # synset of a term faster.
+        syn1 = self._synsets.get(term1)
+        syn2 = self._synsets.get(term2)
+
+        if all(syn is None for syn in (syn1, syn2)):
+            syn1, syn2 = self._get_synsets(term1, term2)
 
         # If one/both synset/s is/are not found in WordNet. If it's not found, its
         # value is None, otherwise, a Synset object.
         if syn1 is None or syn2 is None:
+            if syn1 is not None:
+                self._synsets[term1] = syn1
+
+            if syn2 is not None:
+                self._synsets[term2] = syn2
             return 0
 
         score = wn.wup_similarity(syn1, syn2)

@@ -19,6 +19,7 @@ def run():
     documents2 = ["The sky is blue. #Outdoors",
                   "The dog is barking.",#"The sun is bright.",
                   "The sun in the sky is bright.",
+                  "The moon is lit motherfuckers! #MOON Moon392 -out.",
                   "We can see the shining sun, the bright sun. #Outdoors",
                   "The cat is meowing back at the dog.",
                   "The dog and cat fought each other."
@@ -31,13 +32,17 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    tokens = manip_tweet.tokenize_tweets(documents_3)
+    tokens = manip_tweet.tokenize_tweets(documents_3[:100])
+    for t in documents_3[:100].__iter__():
+        print("> {}\n".format(t))
+    #tokens = manip_tweet.tokenize_tweets(documents2)
     sim = Similarity(tokens)
+    score_matrix = sim.cos_similarity()
     #score_matrix = sim.similarity()
-    #matrix = mcl.cluster(score_matrix, iter_count=100)
-    #clusters = mcl.get_clusters(matrix)
+    matrix = mcl.cluster(score_matrix, iter_count=100)
+    clusters = mcl.get_clusters(matrix)
 
-    print("Features:\n", sim._features)
+    #print("Features:\n", sim._features)
     #print("Matrix:\n", score_matrix)
     #print("MCL Result:\n", matrix)
     print("Clusters: \n", clusters)

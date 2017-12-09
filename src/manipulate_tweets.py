@@ -58,9 +58,10 @@ class ManipulateTweet:
         tokens = self.nlp(tweet)
         tokens = self._merge_hashtags(tweet, tokens)
         tokens = [i.norm_ for i in tokens if not i.is_punct and \
-                i.norm_ not in STOP_WORDS and \
-                "'" != i.norm_[0] and \
-                i.is_ascii and \
+                re.search(r'[\[\];\'\":<>,./?=+-_\)\(*&^%$@!~`\\|\{\}]', i.norm_) is None           and \
+                i.norm_ not in STOP_WORDS                   and \
+                "'" != i.norm_[0]                           and \
+                i.is_ascii                                  and \
                 not i.is_space]
         return tokens if tokens != [] else None
 
