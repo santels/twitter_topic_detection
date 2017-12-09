@@ -107,37 +107,3 @@ class ManipulateTweet:
     def _remove_html_characters(self, text):
         regex = r'&(.*);'
         return re.sub(regex, '', text)
-
-
-if __name__ == '__main__':
-    c = ManipulateTweet()
-    tweets_data_path = "data/tweets_data_3.txt"
-    tweets_data = c.load_tweets_data(tweets_data_path)
-    documents = c.preprocess_tweet(tweets_data)
-    documents3 = [
-        "Apple is looking at buying U.K. startup for $1 billion",
-        "Autonomous cars shift insurance liability toward manufacturers",
-        "San Francisco considers banning sidewalk delivery robots",
-        "London is a big city in the United Kingdom.",
-        "Where are you?",
-        "Who is the president of France?",
-        "What is the capital of the United States?",
-        "When was Barack Obama born?"
-    ]
-    documents2 = ["The sky is blue. #Outdoors",
-                  "The dog is barking.",#"The sun is bright.",
-                  "The sun in the sky is bright.",
-                  "We can see the shining sun, the bright sun. #Outdoors",
-                  "The cat is meowing back at the dog.",
-                  "The dog and cat fought each other."
-                  ]
-    x = []
-    for i in documents.__iter__():
-        g = c._tokenize(i)
-        if g is not None:
-            x.append(g)
-
-    for i in x[:15].__iter__():
-        print(i)
-
-    print("Length: {}".format(len(x)))
