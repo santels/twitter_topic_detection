@@ -33,12 +33,13 @@ def run():
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
     tokens = manip_tweet.tokenize_tweets(documents_3[:100])
+
     for t in documents_3[:100].__iter__():
         print("> {}\n".format(t))
-    #tokens = manip_tweet.tokenize_tweets(documents2)
+
     sim = Similarity(tokens)
-    score_matrix = sim.cos_similarity()
-    #score_matrix = sim.similarity()
+    score_matrix = sim.cos_similarity() # Cosine similarity
+    #score_matrix = sim.similarity()    # Soft cosine similarity
     matrix = mcl.cluster(score_matrix, iter_count=100)
     clusters = mcl.get_clusters(matrix)
 
