@@ -8,3 +8,5 @@ data/
 # Python packages
 nltk_data/
 
+# Virtual environement
+venv/
