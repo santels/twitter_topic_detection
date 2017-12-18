@@ -9,10 +9,13 @@ from http.client import IncompleteRead
 from time import clock
 from urllib3.exceptions import ProtocolError
 
-access_token = "124689202-gdkYDTBPdJbmfhi2kDR7E87drsun0sMhiKhdPvlI"
-access_token_secret = "sW6LYAW6ZDuC4PtDbKFWN4uFaJYQV2PbZZ5fOJYBzp9uw"
-consumer_key = "HqtQlD3YOF1Qk0XApbsEO05mK"
-consumer_secret = "9fNvyTG5t51yTePoa4wxpfZB1CzHU7JVXRHVTCWbJK454DN9XB"
+with open('.access_tokens.json') as data_file:
+    data = json.load(data_file)
+
+access_token = data["access_token"]
+access_token_secret = data["access_token_secret"]
+consumer_key = data["consumer_key"]
+consumer_secret = data["consumer_secret"]
 
 
 class TweetStreamListener(StreamListener):
@@ -67,11 +70,13 @@ if __name__ == '__main__':
             # Connect/reconnect the stream
             stream = Stream(auth, tsl)
             stream.sample()
+            print("Getting samples...")
         except (IncompleteRead, ProtocolError):
             # Ignores exception and continues
             continue
         except KeyboardInterrupt:
             # Exits loop
+            print("Stream ended.")
             stream.disconnect()
             break
 
