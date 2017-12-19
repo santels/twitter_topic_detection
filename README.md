@@ -9,6 +9,10 @@ _By: Santelices, Andrew P. | Talan, Wesly Kate N._
         ```
         pip install -r requirements.txt
         ```
+3. Install NLTK's Wordnet package.
+        ```
+        python3 -m nltk.downloader wordnet
+        ```
 
 ## To Run:
 1. (since there are no UI yet implemented) Just run:

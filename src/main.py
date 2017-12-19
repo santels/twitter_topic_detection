@@ -32,9 +32,9 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    tokens = manip_tweet.tokenize_tweets(documents_3[:100])
+    tokens = manip_tweet.tokenize_tweets(documents_3[5:10])
 
-    for t in documents_3[:100].__iter__():
+    for t in documents_3[5:10].__iter__():
         print("> {}\n".format(t))
 
     sim = Similarity(tokens)

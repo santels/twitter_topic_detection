@@ -4,3 +4,4 @@ spacy==2.0.2
 nltk==3.2.5
 scikit_learn==0.19.1
 tweepy==3.5.0
+wheel==0.30.0
