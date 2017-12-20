@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 
-THRESHOLD = 0.5
+THRESHOLD = 0.45
 
 
 class Similarity:
@@ -30,16 +30,20 @@ class Similarity:
         self._synset_pairs = defaultdict(float)
         self._synsets = {}
 
-    def similarity(self):
+    def similarity(self, M1=None, M2=None):
         """
         Calculates similarity measure of each document matrix. Uses soft cosine
         similarity measure to calculate document similarities.
         """
+        if M1 is None:
+            M1 = self.matrix
+            if M2 is None:
+                M2 = self.matrix
         # Get the sum of consecutive integers for the size of the array
-        doc_sim = np.zeros([self.matrix.shape[0], self.matrix.shape[0]])
+        doc_sim = np.zeros([M1.shape[0], M2.shape[0]])
         doc_pairs = defaultdict(float)
-        for i in range(self.matrix.shape[0]):
-            for j in range(self.matrix.shape[0]):
+        for i in range(M1.shape[0]):
+            for j in range(M2.shape[0]):
                 sorted_indices = tuple( sorted((i,j)) )
                 if sorted_indices in doc_pairs:
                     doc_sim[i, j] = doc_pairs[sorted_indices]
@@ -48,15 +52,19 @@ class Similarity:
                         doc_sim[i, j] = 1
                     else:
                         doc_sim[i, j] = self._soft_cosine_measure(
-                            self.matrix.getrow(i), self.matrix.getrow(j))
+                            M1.getrow(i), M2.getrow(j))
                         doc_pairs[sorted_indices] = doc_sim[i, j]
         return doc_sim
 
-    def cos_similarity(self):
+    def cos_similarity(self, M1=None, M2=None):
         '''
         Cosine similarity measure of documents. For testing purposes.
         '''
-        return cosine_similarity(self.matrix, self.matrix)
+        if M1 is None:
+            M1 = self.matrix
+            if M2 is None:
+                M2 = self.matrix
+        return cosine_similarity(M1, M2)
 
     def _multiply_elements(self, v1, v2):
         """

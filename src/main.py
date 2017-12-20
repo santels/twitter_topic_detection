@@ -19,10 +19,12 @@ def run():
     documents2 = ["The sky is blue. #Outdoors",
                   "The dog is barking.",#"The sun is bright.",
                   "The sun in the sky is bright.",
-                  "The moon is lit motherfuckers! #MOON Moon392 -out.",
+                  "Was that an earthquake???? Motherfucker!!!",
                   "We can see the shining sun, the bright sun. #Outdoors",
                   "The cat is meowing back at the dog.",
-                  "The dog and cat fought each other."
+                  "The dog and cat fought each other.",
+                  "I think that was magnitude 5.4?!?! I thought I died! Damn, nigga, wtf. Where was the epicenter??",
+                  "That trembles the ground so much, man!!!! Aftershock would kill mah guts."
                   ]
 
     tweets_data_path = "data/tweets_data_3.txt"
@@ -32,14 +34,15 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    tokens = manip_tweet.tokenize_tweets(documents_3[5:10])
+    #tokens = manip_tweet.tokenize_tweets(documents_3[100:200])
+    tokens = manip_tweet.tokenize_tweets(documents2)
 
-    for t in documents_3[5:10].__iter__():
-        print("> {}\n".format(t))
+    for k, v in tokens.items():
+        print("{} [{}]\n========".format(k, v))
 
     sim = Similarity(tokens)
-    score_matrix = sim.cos_similarity() # Cosine similarity
-    #score_matrix = sim.similarity()    # Soft cosine similarity
+    #score_matrix = sim.cos_similarity() # Cosine similarity
+    score_matrix = sim.similarity()    # Soft cosine similarity
     matrix = mcl.cluster(score_matrix, iter_count=100)
     clusters = mcl.get_clusters(matrix)
 
