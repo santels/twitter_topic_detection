@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 
-THRESHOLD = 0.45
+THRESHOLD = 0.5
 
 
 class Similarity:

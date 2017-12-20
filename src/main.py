@@ -1,4 +1,5 @@
 import mcl
+import cluster_scoring as cs
 
 from calculate_similarity import Similarity
 from manipulate_tweets import ManipulateTweet
@@ -41,10 +42,11 @@ def run():
         print("{} [{}]\n========".format(k, v))
 
     sim = Similarity(tokens)
-    #score_matrix = sim.cos_similarity() # Cosine similarity
-    score_matrix = sim.similarity()    # Soft cosine similarity
+    score_matrix = sim.cos_similarity() # Cosine similarity
+    #score_matrix = sim.similarity()    # Soft cosine similarity
     matrix = mcl.cluster(score_matrix, iter_count=100)
-    clusters = mcl.get_clusters(matrix)
+    clusters, matrix = mcl.get_clusters(matrix)
+    print(cs.score(sim.cos_similarity, matrix, clusters))
 
     #print("Features:\n", sim._features)
     #print("Matrix:\n", score_matrix)

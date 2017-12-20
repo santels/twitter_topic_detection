@@ -55,7 +55,7 @@ def get_clusters(M):
         cluster = tuple(M[attractor].nonzero()[0].tolist())
         cluster_set.add(cluster)
 
-    return sorted(list(cluster_set))
+    return sorted(list(cluster_set)), M
 
 def cluster(M, exp_power=2, inf_power=2, iter_count=10,
             pr_threshold=0.0001):
@@ -82,5 +82,4 @@ def cluster(M, exp_power=2, inf_power=2, iter_count=10,
         if check_convergence(M, prev_mat):
             #print("Convergence found. Stopping loop...")
             break
-
     return matrix
