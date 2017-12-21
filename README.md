@@ -6,6 +6,9 @@ _By: Santelices, Andrew P. | Talan, Wesly Kate N._
 ## Requirements:
 * Python 3.x
 * See [requirements.txt](https://github.com/santels/blob/master/requirements.txt)
+    * Optional Python dependencies (for showing graph):
+        * `networkx==2.0`
+        * `matplotlib==2.0`
 
 ## Installation Guide:
 1. [Create a new virtual environment](https://docs.python.org/3/library/venv.html).
