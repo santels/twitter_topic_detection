@@ -1,3 +1,5 @@
+import numpy as np
+
 import mcl
 import cluster_scoring as cs
 
@@ -25,7 +27,9 @@ def run():
                   "The cat is meowing back at the dog.",
                   "The dog and cat fought each other.",
                   "I think that was magnitude 5.4?!?! I thought I died! Damn, nigga, wtf. Where was the epicenter??",
-                  "That trembles the ground so much, man!!!! Aftershock would kill mah guts."
+                  "That trembles the ground so much, man!!!! Aftershock would kill mah guts.",
+                  "Martin's cancer is benign, omg.",
+                  "I thought February is the zodiac sign for cancer.",
                   ]
 
     tweets_data_path = "data/tweets_data_3.txt"
@@ -35,25 +39,32 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    #tokens = manip_tweet.tokenize_tweets(documents_3[100:200])
+    #tokens = manip_tweet.tokenize_tweets(documents_3[500:1000])
     tokens = manip_tweet.tokenize_tweets(documents2)
 
-    for k, v in tokens.items():
-        print("{} [{}]\n========".format(k, v))
+    #for k, v in tokens.items():
+    #    print("{} [{}]\n========".format(k, v))
 
     sim = Similarity(tokens)
     score_matrix = sim.cos_similarity() # Cosine similarity
     #score_matrix = sim.similarity()    # Soft cosine similarity
     matrix = mcl.cluster(score_matrix, iter_count=100)
     clusters, matrix = mcl.get_clusters(matrix)
-    print(cs.score(sim.cos_similarity, matrix, clusters))
+    mcl.draw(matrix, clusters)
+    #scores = cs.score(sim.similarity, matrix, clusters)
+    #max_score = np.max(scores)
+    #tweet_list = list(tokens)
+    #print("Max score: {}".format(max_score))
+    #for tweet_index in clusters[np.argmax(scores)]:
+    #    print("{}. {}".format(tweet_index, tweet_list[tweet_index]))
+    #print("{} = {}".format(max_score, clusters[np.argmax(scores)]))
 
     #print("Features:\n", sim._features)
     #print("Matrix:\n", score_matrix)
     #print("MCL Result:\n", matrix)
-    print("Clusters: \n", clusters)
-    print("No. of Clusters: \n", len(clusters))
-    print("No. of Features: \n", len(sim._features))
+    #print("Clusters :", clusters)
+    #print("No. of Clusters: \n", len(clusters))
+    #print("No. of Features: \n", len(sim._features))
 
 
 
