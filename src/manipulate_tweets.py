@@ -45,7 +45,8 @@ class ManipulateTweet:
         Utility function to find and merge hashtag and words next to it as
         tokens.
         """
-        indices = [match.span() for match in re.finditer('#\w+', tweet, flags=re.IGNORECASE)]
+        indices = [match.span() for match in re.finditer(
+            '#\w+', tweet, flags=re.IGNORECASE)]
         for start, end in indices:
             tokens.merge(start_idx=start, end_idx=end)
         return tokens
@@ -57,12 +58,13 @@ class ManipulateTweet:
         """
         tokens = self.nlp(tweet)
         tokens = self._merge_hashtags(tweet, tokens)
-        tokens = [i.norm_ for i in tokens if not i.is_punct and \
-                re.search(r'[\[\];\'\":<>,./?=+-_\)\(*&^%$@!~`\\|\{\}]', i.norm_) is None and \
-                i.norm_ not in STOP_WORDS                   and \
-                "'" != i.norm_[0]                           and \
-                i.is_ascii                                  and \
-                not i.is_space]
+        tokens = [i.norm_ for i in tokens if not i.is_punct and
+                  re.search(r'[\[\];\'\":<>,./?=+-_\)\(*&^%$@!~`\\|\{\}]',
+                            i.norm_) is None and
+                  i.norm_ not in STOP_WORDS  and
+                  "'" != i.norm_[0]          and
+                  i.is_ascii                 and
+                  not i.is_space]
         return tokens if tokens != [] else None
 
     def tokenize_tweets(self, tweet_data):
@@ -82,7 +84,6 @@ class ManipulateTweet:
         text = self._remove_emojis(text)
         text = self._remove_mentions(text)
         text = self._remove_html_characters(text)
-
         return text
 
     def _remove_emojis(self, text):

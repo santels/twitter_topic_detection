@@ -1,5 +1,5 @@
-import math
 import numpy as np
+
 
 """
 Markov Clustering Algorithm (MCL Algorithm) Implementation.
@@ -7,11 +7,13 @@ Visit https://micans.org/mcl/index.html for more details about MCL.
 This is an implementation of Stijn van Dongen's algorithm of the same name.
 """
 
+
 def normalize(M):
     """
     Normailizes matrix to get transition matrix.
     """
     return M/np.sum(M, axis=0)
+
 
 def expand(M, power):
     """
@@ -19,11 +21,13 @@ def expand(M, power):
     """
     return np.linalg.matrix_power(M, power)
 
+
 def inflate(M, power):
     """
     Applies inflation process to the matrix with the given power.
     """
     return normalize(np.power(M, power))
+
 
 def check_convergence(M1, M2):
     """
@@ -32,14 +36,16 @@ def check_convergence(M1, M2):
     """
     return np.allclose(M1, M2)
 
+
 def prune(M, threshold):
     """
-    Prunes the matrix removing weak edges (edges lower than the pruning 
+    Prunes the matrix removing weak edges (edges lower than the pruning
     threshold specified.
     """
     pruned_mat = M.copy()
     pruned_mat[pruned_mat < threshold] = 0
     return pruned_mat
+
 
 def draw(M, clusters, node_size=50, with_labels=False):
     """
@@ -51,14 +57,15 @@ def draw(M, clusters, node_size=50, with_labels=False):
     graph = nx.Graph(M)
     pos = nx.spring_layout(graph)
     cluster_map = {node: i for i, cluster in enumerate(clusters)
-            for node in cluster}
+                   for node in cluster}
     colors = [cluster_map[i] for i in range(len(graph.nodes()))]
 
     nx.draw_networkx_nodes(graph, pos, node_color=colors, node_size=node_size,
-            with_labels=False)
+                           with_labels=False)
     nx.draw_networkx_edges(graph, pos, alpha=0.5, edge_color="silver")
     axis("off")
     show(block=True)
+
 
 def get_clusters(M):
     """
@@ -76,6 +83,7 @@ def get_clusters(M):
 
     return sorted(list(cluster_set)), M
 
+
 def cluster(M, exp_power=2, inf_power=2, iter_count=10,
             pr_threshold=0.001):
     """
@@ -89,9 +97,9 @@ def cluster(M, exp_power=2, inf_power=2, iter_count=10,
     """
     M = normalize(M)
     for i in range(iter_count):
-        #print("Iteration {}".format(i))
+        # print("Iteration {}".format(i))
 
-        prev_mat = M.copy() # Copies last matrix for convergence check.
+        prev_mat = M.copy()  # Copies last matrix for convergence check.
         M = expand(M, exp_power)
         M = inflate(M, inf_power)
 
@@ -99,6 +107,6 @@ def cluster(M, exp_power=2, inf_power=2, iter_count=10,
             M = prune(M, pr_threshold)
 
         if check_convergence(M, prev_mat):
-            #print("Convergence found. Stopping loop...")
+            # print("Convergence found. Stopping loop...")
             break
     return M

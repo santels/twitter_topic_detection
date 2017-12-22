@@ -2,11 +2,9 @@ import re
 import math
 import numpy as np
 
-from collections import defaultdict
 from nltk.corpus import wordnet as wn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
 
 
 THRESHOLD = 0.5
@@ -27,7 +25,7 @@ class Similarity:
         self.tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
         self.matrix = self.tfidf.fit_transform(tokens.keys())
         self._features = self.tfidf.get_feature_names()
-        self._synset_pairs = defaultdict(float)
+        self._synset_pairs = {}
         self._synsets = {}
 
     def similarity(self, M1=None, M2=None):
@@ -41,18 +39,19 @@ class Similarity:
                 M2 = self.matrix
         # Get the sum of consecutive integers for the size of the array
         doc_sim = np.zeros([M1.shape[0], M2.shape[0]])
-        doc_pairs = defaultdict(float)
+        doc_pairs = {}
+        soft_cosine_measure = self._soft_cosine_measure
         for i in range(M1.shape[0]):
             for j in range(M2.shape[0]):
-                sorted_indices = tuple( sorted((i,j)) )
+                sorted_indices = tuple(sorted((i, j)))
                 if sorted_indices in doc_pairs:
                     doc_sim[i, j] = doc_pairs[sorted_indices]
                 else:
                     if i == j:
                         doc_sim[i, j] = 1
                     else:
-                        doc_sim[i, j] = self._soft_cosine_measure(
-                            M1.getrow(i), M2.getrow(j))
+                        doc_sim[i, j] = soft_cosine_measure(M1.getrow(i),
+                                                            M2.getrow(j))
                         doc_pairs[sorted_indices] = doc_sim[i, j]
         return doc_sim
 
@@ -68,24 +67,26 @@ class Similarity:
 
     def _multiply_elements(self, v1, v2):
         """
-        Multiplies values between vector elements and similarity function scores.
+        Multiplies values between vector elements and similarity function
+        scores.
         """
-        sum = 0
+        features = self._features
+        get_feature_score = self._get_feature_score
+        total_score = 0
         for i in range(v1.shape[0]):
             for j in range(v1.shape[0]):
 
                 # Same terms has 1.0 similarity.
-                if self._features[i] == self._features[j]:
+                if features[i] == features[j]:
                     feature_score = 1
                 else:
-                    feature_score = self._get_feature_score(self._features[i],
-                        self._features[j])
+                    feature_score = get_feature_score(features[i], features[j])
 
                     if feature_score <= THRESHOLD:
                         feature_score = 0
 
-                sum += v1[i] * v2[j] * feature_score
-        return sum
+                total_score += v1[i] * v2[j] * feature_score
+        return total_score
 
     def _soft_cosine_measure(self, v1, v2):
         """
@@ -116,8 +117,9 @@ class Similarity:
         else:
             best_pair = [None, None]
             for i in synset_list1.__iter__():
+                i_shortest_path_distance = i.shortest_path_distance
                 for j in synset_list2.__iter__():
-                    score = 1.0 / (i.shortest_path_distance(j, True) + 1)
+                    score = 1.0 / (i_shortest_path_distance(j, True) + 1)
                     if score is not None and score > max_score:
                         max_score = score
                         best_pair = [i, j]
@@ -134,8 +136,8 @@ class Similarity:
 
     def _get_related_nouns(self, synset):
         """
-        Gets derivationally related word forms as noun synsets of a given synset
-        to measure its similarity to other terms.
+        Gets derivationally related word forms as noun synsets of a given
+        synset to measure its similarity to other terms.
         """
         related = None
         lemmas = synset.lemmas()
@@ -147,15 +149,15 @@ class Similarity:
 
     def _get_feature_score(self, term1, term2):
         """
-        If syn1 and syn2 are synsets, returns their similarity score. If they are
-        lists, gets all similarity scores of each element and returns the best
-        score.
+        If syn1 and syn2 are synsets, returns their similarity score. If they
+        are lists, gets all similarity scores of each element and returns the
+        best score.
         """
-        sorted_terms = tuple( sorted((term1, term2)) )
+        sorted_terms = tuple(sorted((term1, term2)))
 
         # Checks if synset pair had already been calculated.
         if sorted_terms in self._synset_pairs:
-            return self._synset_pairs[tuple( sorted((term1, term2)) )]
+            return self._synset_pairs[tuple(sorted((term1, term2)))]
 
         # If a term contains a hashtag, it automatically does not contain
         # synsets, thus, returning 0.
@@ -164,7 +166,8 @@ class Similarity:
 
         # If a term has does not fully contains alpha characters, it has no
         # synsets.
-        if any(re.search(r'^([a-zA-Z]+[-]?[a-zA-Z]+)$', term) is None for term in (term1, term2)):
+        if any(re.search(r'^([a-zA-Z]+[-]?[a-zA-Z]+)$', term) is None
+               for term in (term1, term2)):
             return 0
 
         # If the synset has already been captured. Checks the cache to get the
@@ -175,8 +178,8 @@ class Similarity:
         if all(syn is None for syn in (syn1, syn2)):
             syn1, syn2 = self._get_synsets(term1, term2)
 
-        # If one/both synset/s is/are not found in WordNet. If it's not found, its
-        # value is None, otherwise, a Synset object.
+        # If one/both synset/s is/are not found in WordNet. If it's not found,
+        # its value is None, otherwise, a Synset object.
         if syn1 is None or syn2 is None:
             if syn1 is not None:
                 self._synsets[term1] = syn1
