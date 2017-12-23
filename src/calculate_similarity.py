@@ -1,8 +1,10 @@
 import re
 import math
+import time
 import numpy as np
 
 from nltk.corpus import wordnet as wn
+from scipy.sparse import isspmatrix, csc_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -19,32 +21,48 @@ class Similarity:
     def __init__(self, tokens):
         """
         Similarity class constructor.
-        `document` - list of documents to be analyzed.
-        `manip_tweet` - class object instance of manipulate tweet module.
         """
         self.tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
         self.matrix = self.tfidf.fit_transform(tokens.keys())
         self._features = self.tfidf.get_feature_names()
         self._synset_pairs = {}
         self._synsets = {}
+        self.start = time.time()
 
-    def similarity(self, M1=None, M2=None):
+    def similarity(self, M1=None, M2=None, is_scoring=False):
         """
         Calculates similarity measure of each document matrix. Uses soft cosine
         similarity measure to calculate document similarities.
         """
-
+        print("Start:", time.strftime("%H:%M:%S", time.gmtime(self.start)))
         if M1 is None:
             M1 = self.matrix
             if M2 is None:
                 M2 = self.matrix
 
+        if not isspmatrix(M1) or not isspmatrix(M2):
+            M1 = csc_matrix(M1)
+            M2 = csc_matrix(M2)
+
+        if is_scoring:
+            M1_len = M1.shape[1]
+            M2_len = M2.shape[1]
+            M1_get_vect = M1.getcol
+            M2_get_vect = M2.getcol
+        else:
+            M1_len = M1.shape[0]
+            M2_len = M2.shape[0]
+            M1_get_vect = M1.getrow
+            M2_get_vect = M2.getrow
+
         # Get the sum of consecutive integers for the size of the array
         doc_pairs = {}
-        doc_sim = np.zeros([M1.shape[0], M2.shape[0]])
-        soft_cosine_measure = self._soft_cosine_measure
-        for i in range(M1.shape[0]):
-            for j in range(M2.shape[0]):
+        doc_sim = np.zeros([M1_len, M2_len])
+        soft_cosine_similarity = self._soft_cosine_similarity
+        print("Shape:", M1_len, M2_len)
+        for i in range(M1_len):
+            for j in range(M2_len):
+                print(i, j)
                 sorted_indices = tuple(sorted((i, j)))
                 if sorted_indices in doc_pairs:
                     doc_sim[i, j] = doc_pairs[sorted_indices]
@@ -52,9 +70,10 @@ class Similarity:
                     if i == j:
                         doc_sim[i, j] = 1
                     else:
-                        doc_sim[i, j] = soft_cosine_measure(M1.getrow(i),
-                                                            M2.getrow(j))
+                        doc_sim[i, j] = soft_cosine_similarity(M1_get_vect(i),
+                                                               M2_get_vect(j))
                         doc_pairs[sorted_indices] = doc_sim[i, j]
+                print("Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - self.start)))
         return doc_sim
 
     def cos_similarity(self, M1=None, M2=None):
@@ -66,21 +85,22 @@ class Similarity:
             M1 = self.matrix
             if M2 is None:
                 M2 = self.matrix
-
         return cosine_similarity(M1, M2)
 
-    def _multiply_elements(self, v1, v2, feature_score_list):
+    def _multiply_elements(self, v1, v2):
         """
         Multiplies values between vector elements and similarity function
         scores.
         """
         total_score = 0
-        for i in range(v1.shape[0]):
-            for j in range(v1.shape[0]):
-                total_score += v1[i] * v2[j] * feature_score_list[i, j]
+        features = self._features
+        get_score = self._get_score
+        total_score = np.sum((v1[i] * v2[j] * get_score(features[i],
+                             features[j]) for i in range(v1.shape[0])
+                             for j in range(v1.shape[0])))
         return total_score
 
-    def _soft_cosine_measure(self, v1, v2):
+    def _soft_cosine_similarity(self, v1, v2):
         """
         Soft Cosine Similarity Measure
         ------------------------------
@@ -90,26 +110,25 @@ class Similarity:
         v1 = v1.toarray()[0]
         v2 = v2.toarray()[0]
 
-        features = self._features
-        feature_score_list = np.empty([v1.shape[0], v1.shape[0]])
-        get_feature_score = self._get_feature_score
-        # Gets similarity scores for each features.
-        for i in range(v1.shape[0]):
-            for j in range(v1.shape[0]):
-                # Same terms have 1.0 similarity.
-                if features[i] == features[j]:
-                    feature_score_list[i, j] = 1
-                else:
-                    feature_score = get_feature_score(features[i], features[j])
-                    if feature_score <= THRESHOLD:
-                        feature_score = 0
-                    feature_score_list[i, j] = feature_score
-
-
-        product = self._multiply_elements(v1, v2, feature_score_list)
-        denom1 = math.sqrt(self._multiply_elements(v1, v1, feature_score_list))
-        denom2 = math.sqrt(self._multiply_elements(v2, v2, feature_score_list))
+        product = self._multiply_elements(v1, v2)
+        denom1 = math.sqrt(self._multiply_elements(v1, v1))
+        denom2 = math.sqrt(self._multiply_elements(v2, v2))
         return product / (denom1 * denom2)
+
+    def _get_score(self, feature1, feature2):
+        """
+        Filters feature score and ignores score less than the specified
+        threshold.
+        """
+        feature_score = 0
+        # Same terms have 1.0 similarity.
+        if feature1 == feature2:
+            feature_score = 1
+        else:
+            feature_score = self._get_feature_score(feature1, feature2)
+            if feature_score <= THRESHOLD:
+                feature_score = 0
+        return feature_score
 
     def _get_synsets(self, term1, term2):
         """

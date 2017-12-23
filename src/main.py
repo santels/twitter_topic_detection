@@ -28,7 +28,7 @@ def run():
                   "The dog and cat fought each other.",
                   "I think that was magnitude 5.4?!?! I thought I died! Damn, nigga, wtf. Where was the epicenter??",
                   "That trembles the ground so much, man!!!! Aftershock would kill mah guts.",
-                  "Martin rolled a die.",
+                  "Martin ate a cake.",
                   "Lucas will surely die in that episode.",
                   ]
 
@@ -39,19 +39,19 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    tokens = manip_tweet.tokenize_tweets(documents_3[:20])
-    #tokens = manip_tweet.tokenize_tweets(documents2)
+    #tokens = manip_tweet.tokenize_tweets(documents_3[:20])
+    tokens = manip_tweet.tokenize_tweets(documents)
     print("Tokenization completed!")
     print("No. of tokenized tweets:", len(tokens))
 
     #for k, v in tokens.items():
     #    print("{} [{}]\n========".format(k, v))
-
+ 
     # Similarity function
     sim = Similarity(tokens)
     print("No. of Features:", len(sim._features))
-    score_matrix = sim.cos_similarity() # Cosine similarity
-    #score_matrix = sim.similarity()    # Soft cosine similarity
+    #score_matrix = sim.cos_similarity() # Cosine similarity
+    score_matrix = sim.similarity()    # Soft cosine similarity
     print("Similarity function operation completed!")
 
     # Clustering
@@ -61,7 +61,7 @@ def run():
     print("Clustering finished!")
 
     # Cluster scoring
-    scores = [s for s in cs.score(sim.cos_similarity, matrix, clusters)]
+    scores = [s for s in cs.score(sim.similarity, matrix, clusters)]
     print("Scoring finished!")
     max_score = np.max(scores)
     tweet_list = list(tokens)
