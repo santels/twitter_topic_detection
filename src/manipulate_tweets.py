@@ -37,7 +37,7 @@ class ManipulateTweet:
             2. Removes emojis and special characters
             3. Removes "RT"'s and @ symbols indicating mentions
         """
-        tweets = [self._clean_tweet(t["text"]) for t in tweet_data.__iter__()]
+        tweets = [self._clean_tweet(t["text"]) for t in iter(tweet_data)]
         return tweets
 
     def _merge_hashtags(self, tweet, tokens):
@@ -73,7 +73,7 @@ class ManipulateTweet:
         in other modules). With document as keys and tokens as values.
         """
         tokens = OrderedDict()
-        for tweet in tweet_data.__iter__():
+        for tweet in iter(tweet_data):
             tokenized = self._tokenize(tweet)
             if tokenized is not None:
                 tokens[tweet.lower()] = tokenized

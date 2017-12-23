@@ -39,24 +39,30 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    #tokens = manip_tweet.tokenize_tweets(documents_3[500:1000])
-    tokens = manip_tweet.tokenize_tweets(documents2)
+    tokens = manip_tweet.tokenize_tweets(documents_3[:20])
+    #tokens = manip_tweet.tokenize_tweets(documents2)
+    print("Tokenization completed!")
+    print("No. of tokenized tweets:", len(tokens))
 
     #for k, v in tokens.items():
     #    print("{} [{}]\n========".format(k, v))
 
     # Similarity function
     sim = Similarity(tokens)
-    #score_matrix = sim.cos_similarity() # Cosine similarity
-    score_matrix = sim.similarity()    # Soft cosine similarity
+    print("No. of Features:", len(sim._features))
+    score_matrix = sim.cos_similarity() # Cosine similarity
+    #score_matrix = sim.similarity()    # Soft cosine similarity
+    print("Similarity function operation completed!")
 
-    # Clustering 
+    # Clustering
     matrix = mcl.cluster(score_matrix, iter_count=100)
     clusters, matrix = mcl.get_clusters(matrix)
     mcl.draw(matrix, clusters)
+    print("Clustering finished!")
 
     # Cluster scoring
-    scores = cs.score(sim.similarity, matrix, clusters)
+    scores = [s for s in cs.score(sim.cos_similarity, matrix, clusters)]
+    print("Scoring finished!")
     max_score = np.max(scores)
     tweet_list = list(tokens)
     print("Max score: {}".format(max_score))
@@ -67,9 +73,8 @@ def run():
     #print("Features:\n", sim._features)
     #print("Matrix:\n", score_matrix)
     #print("MCL Result:\n", matrix)
-    print("Clusters :", clusters)
+    #print("Clusters :", clusters)
     print("No. of Clusters: \n", len(clusters))
-    print("No. of Features: \n", len(sim._features))
 
 
 
