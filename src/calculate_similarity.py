@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 from nltk.corpus import wordnet as wn
-from scipy.sparse import isspmatrix, csc_matrix
+from scipy.sparse import csc_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -40,11 +40,9 @@ class Similarity:
             if M2 is None:
                 M2 = self.matrix
 
-        if not isspmatrix(M1) or not isspmatrix(M2):
+        if is_scoring:
             M1 = csc_matrix(M1)
             M2 = csc_matrix(M2)
-
-        if is_scoring:
             M1_len = M1.shape[1]
             M2_len = M2.shape[1]
             M1_get_vect = M1.getcol
