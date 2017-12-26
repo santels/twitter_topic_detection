@@ -34,7 +34,6 @@ class Similarity:
         Calculates similarity measure of each document matrix. Uses soft cosine
         similarity measure to calculate document similarities.
         """
-        print("Start:", time.strftime("%H:%M:%S", time.gmtime(self.start)))
         if M1 is None:
             M1 = self.matrix
             if M2 is None:
@@ -57,10 +56,8 @@ class Similarity:
         doc_pairs = {}
         doc_sim = np.zeros([M1_len, M2_len])
         soft_cosine_similarity = self._soft_cosine_similarity
-        print("Shape:", M1_len, M2_len)
         for i in range(M1_len):
             for j in range(M2_len):
-                print(i, j)
                 sorted_indices = tuple(sorted((i, j)))
                 if sorted_indices in doc_pairs:
                     doc_sim[i, j] = doc_pairs[sorted_indices]
@@ -71,7 +68,7 @@ class Similarity:
                         doc_sim[i, j] = soft_cosine_similarity(M1_get_vect(i),
                                                                M2_get_vect(j))
                         doc_pairs[sorted_indices] = doc_sim[i, j]
-                print("Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - self.start)))
+        print("Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - self.start)))
         return doc_sim
 
     def cos_similarity(self, M1=None, M2=None):
@@ -85,17 +82,15 @@ class Similarity:
                 M2 = self.matrix
         return cosine_similarity(M1, M2)
 
-    def _multiply_elements(self, v1, v2):
+    def _multiply_elements(self, v1, v2, feature_score_list):
         """
         Multiplies values between vector elements and similarity function
         scores.
         """
         total_score = 0
-        features = self._features
-        get_score = self._get_score
-        total_score = np.sum((v1[i] * v2[j] * get_score(features[i],
-                             features[j]) for i in range(v1.shape[0])
-                             for j in range(v1.shape[0])))
+        for i in range(v1.shape[0]):
+            for j in range(v2.shape[0]):
+                total_score += v1[i] * v2[j] * feature_score_list[i, j]
         return total_score
 
     def _soft_cosine_similarity(self, v1, v2):
@@ -107,26 +102,32 @@ class Similarity:
         """
         v1 = v1.toarray()[0]
         v2 = v2.toarray()[0]
-
-        product = self._multiply_elements(v1, v2)
-        denom1 = math.sqrt(self._multiply_elements(v1, v1))
-        denom2 = math.sqrt(self._multiply_elements(v2, v2))
+        feature_score_list = self._get_scores(v1.shape[0], v2.shape[0])
+        product = self._multiply_elements(v1, v2, feature_score_list)
+        denom1 = math.sqrt(self._multiply_elements(v1, v1, feature_score_list))
+        denom2 = math.sqrt(self._multiply_elements(v2, v2, feature_score_list))
         return product / (denom1 * denom2)
 
-    def _get_score(self, feature1, feature2):
+    def _get_scores(self, v1_len, v2_len):
         """
-        Filters feature score and ignores score less than the specified
-        threshold.
+        Gets and filters feature score and ignores score less than the
+        specified threshold.
         """
-        feature_score = 0
-        # Same terms have 1.0 similarity.
-        if feature1 == feature2:
-            feature_score = 1
-        else:
-            feature_score = self._get_feature_score(feature1, feature2)
-            if feature_score <= THRESHOLD:
+        score_list = np.zeros([v1_len, v2_len])
+        features = self._features
+        for i in range(v1_len):
+            for j in range(v2_len):
                 feature_score = 0
-        return feature_score
+                # Same terms have 1.0 similarity.
+                if features[i] == features[j]:
+                    feature_score = 1
+                else:
+                    feature_score = self._get_feature_score(features[i],
+                            features[j])
+                    if feature_score <= THRESHOLD:
+                        feature_score = 0
+                score_list[i, j] = feature_score
+        return score_list
 
     def _get_synsets(self, term1, term2):
         """
@@ -175,13 +176,13 @@ class Similarity:
 
     def _get_feature_score(self, term1, term2):
         """
-        If syn1 and syn2 are synsets, returns their similarity score. If they
+        If term1 and term2 are synsets, returns their similarity score. If they
         are lists, gets all similarity scores of each element and returns the
         best score.
         """
         sorted_terms = tuple(sorted((term1, term2)))
 
-        # Checks if synset pair had already been calculated.
+        # Checks if synset pair has already been calculated.
         if sorted_terms in self._synset_pairs:
             return self._synset_pairs[tuple(sorted((term1, term2)))]
 
@@ -196,16 +197,16 @@ class Similarity:
                for term in (term1, term2)):
             return 0
 
-        # If the synset has already been captured. Checks the cache to get the
-        # synset of a term faster.
+        # If the synset of a term  has already been captured. Checks the cache
+        # to get the synset of a term faster.
         syn1 = self._synsets.get(term1)
         syn2 = self._synsets.get(term2)
 
         if all(syn is None for syn in (syn1, syn2)):
             syn1, syn2 = self._get_synsets(term1, term2)
 
-        # If one/both synset/s is/are not found in WordNet. If it's not found,
-        # its value is None, otherwise, a Synset object.
+        # Checks if one/both synset/s is/are not found in WordNet. If it's not
+        # found, its value is None, otherwise, caches the Synset object.
         if syn1 is None or syn2 is None:
             if syn1 is not None:
                 self._synsets[term1] = syn1
@@ -234,20 +235,21 @@ if __name__ == '__main__':
                  "Hold the door, Hodor.",
                  "A quick brown fox jumps over the lazy dog."]
 
-    documents2 = ("The sky is blue. #Outdoors",
+    documents2 = ["The sky is blue. #Outdoors",
                   "The dog is playing.",#"The sun is bright.",
                   "The sun in the sky is bright.",
-                  "We can see the shining sun, the bright sun. #Outdoors")
+                  "We can see the shining sun, the bright sun. #Outdoors"]
 
     #documents_3 = mt.preprocess_tweet(tweets_data[:5])
 
-    sim = Similarity(documents_3)
+    from manipulate_tweets import ManipulateTweet
 
-    print("Vocabulary:", sim.tfidf.vocabulary_)
+
+    manip_tweet = ManipulateTweet()
+    tokens = manip_tweet.tokenize_tweets(documents2)
+    sim = Similarity(tokens)
+
     print("Features:", sim._features)
 
-    print("Matrix shape:", sim.tfidf_matrix.shape)
-    print("TF-IDF:", sim.tfidf_matrix.todense())
-
-    #print("Soft Cosine Similarity of 1-n and 1-n documents:")
-    #print(similarity(tfidf_matrix, features))
+    print("Soft Cosine Similarity of 1-n and 1-n documents:")
+    print(sim.similarity(sim.matrix, sim.matrix))

@@ -33,6 +33,12 @@ def run():
                   "Quit playing games with mah heart, mofo!",
                   ]
 
+    documents3 = ["The sky is blue. #Outdoors",
+                  "The dog is barking.",  # "The sun is bright.",
+                  "The sun in the sky is bright.",
+                  "Was that an earthquake???? Motherfucker!!!",
+                  "We can see the shining sun, the bright sun. #Outdoors"]
+
     tweets_data_path = "data/tweets_data_3.txt"
 
     manip_tweet = ManipulateTweet()
@@ -58,7 +64,7 @@ def run():
     # Clustering
     matrix = mcl.cluster(score_matrix, iter_count=100)
     clusters, matrix = mcl.get_clusters(matrix)
-    mcl.draw(matrix, clusters)
+    #mcl.draw(matrix, clusters)
     print("Clustering finished!")
 
     # Cluster scoring
