@@ -1,8 +1,8 @@
-urllib3==1.22
+nltk==3.2.5
+numba==0.36.2
 numpy==1.13.3
 spacy>=2.0.0,<3.0.0
-nltk==3.2.5
 scikit_learn==0.19.1
 scipy==0.19.1
 tweepy==3.5.0
-wheel==0.30.0
+urllib3==1.22

@@ -16,6 +16,12 @@ _By: Santelices, Andrew P. | Talan, Wesly Kate N._
         ```
         pip install -r requirements.txt
         ```
+    __Note__: In case you're having problem in installing some packages, it might be because of
+    some dependencies not included in requirements.txt.
+        ```
+        apt-get install python3-dev
+        apt-get install libevent-dev
+        ```
 3. Install NLTK's Wordnet package.
         ```
         python3 -m nltk.downloader wordnet

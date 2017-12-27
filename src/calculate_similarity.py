@@ -2,6 +2,7 @@ import re
 import math
 import time
 import numpy as np
+import numba as nb
 
 from nltk.corpus import wordnet as wn
 from scipy.sparse import csc_matrix
@@ -93,6 +94,7 @@ class Similarity:
                 total_score += v1[i] * v2[j] * feature_score_list[i, j]
         return total_score
 
+    @nb.jit
     def _soft_cosine_similarity(self, v1, v2):
         """
         Soft Cosine Similarity Measure
@@ -222,34 +224,3 @@ class Similarity:
 
         self._synset_pairs[sorted_terms] = score
         return score
-
-
-if __name__ == '__main__':
-    tweets_data_path = "data/tweets_data.txt"
-    documents = ["Praise the fucking sun!",
-                 "Daenerys is the mother of dragons.",
-                 "Icarus flew too close to the sun.",
-                 "Damn, Icarus got it tough, man.",
-                 "Jon Fucking Snow fucked his aunt, Daenerys!",
-                 "You're a wizard, Harry.",
-                 "Hold the door, Hodor.",
-                 "A quick brown fox jumps over the lazy dog."]
-
-    documents2 = ["The sky is blue. #Outdoors",
-                  "The dog is playing.",#"The sun is bright.",
-                  "The sun in the sky is bright.",
-                  "We can see the shining sun, the bright sun. #Outdoors"]
-
-    #documents_3 = mt.preprocess_tweet(tweets_data[:5])
-
-    from manipulate_tweets import ManipulateTweet
-
-
-    manip_tweet = ManipulateTweet()
-    tokens = manip_tweet.tokenize_tweets(documents2)
-    sim = Similarity(tokens)
-
-    print("Features:", sim._features)
-
-    print("Soft Cosine Similarity of 1-n and 1-n documents:")
-    print(sim.similarity(sim.matrix, sim.matrix))
