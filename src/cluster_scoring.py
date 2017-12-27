@@ -21,7 +21,7 @@ def get_tweet_related_degree(sim, cluster_mat, cluster):
     centroid = get_centroid_vector(cluster, cluster_mat)
     total = sum(sim(centroid, cluster_mat[i].reshape(1, centroid.shape[1]),
                 is_scoring=True) for i in iter(cluster))
-    return total[0, 0]
+    return total[0, 0] / len(cluster)
 
 
 def get_centroid_vector(cluster, cluster_mat):
