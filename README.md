@@ -13,23 +13,22 @@ _By: Santelices, Andrew P. | Talan, Wesly Kate N._
 ## Installation Guide:
 1. [Create a new virtual environment](https://docs.python.org/3/library/venv.html).
 2. Activate virtual environment and install required packages:
-        ```
-        pip install -r requirements.txt
-        ```
-    __Note__: In case you're having problem in installing some packages, it might be because of
-    some dependencies not included in requirements.txt.
-        ```
-        apt-get install python3-dev
-        apt-get install libevent-dev
-        ```
+    ```bash
+    pip install -r requirements.txt
+    ```
+   __Note__: In case you're having problem in installing some packages, it might be because of some dependencies in some required Python packages. A workaround would be installing the following:
+    ```bash
+    apt-get install python3-dev
+    apt-get install libevent-dev
+    ```
 3. Install NLTK's Wordnet package.
-        ```
-        python3 -m nltk.downloader wordnet
-        ```
+    ```bash
+    python3 -m nltk.downloader wordnet
+    ```
 
 ## To Run:
 1. (since there are no UI yet implemented) Just run:
-    ```
+    ```bash
     # in 'src' folder
     python3 main.py
     ```
