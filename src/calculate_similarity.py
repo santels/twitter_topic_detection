@@ -1,8 +1,8 @@
 import re
 import math
 import time
-import numpy as np
 import numba as nb
+import numpy as np
 
 from nltk.corpus import wordnet as wn
 from scipy.sparse import csc_matrix
@@ -76,7 +76,6 @@ class Similarity:
         '''
         Cosine similarity measure of documents. For testing purposes.
         '''
-
         if M1 is None:
             M1 = self.matrix
             if M2 is None:
@@ -108,6 +107,10 @@ class Similarity:
         product = self._multiply_elements(v1, v2, feature_score_list)
         denom1 = math.sqrt(self._multiply_elements(v1, v1, feature_score_list))
         denom2 = math.sqrt(self._multiply_elements(v2, v2, feature_score_list))
+
+        if denom1 == 0 or denom2 == 0:
+            return 0
+
         return product / (denom1 * denom2)
 
     def _get_scores(self, v1_len, v2_len):

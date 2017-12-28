@@ -1,5 +1,6 @@
 import re
 import json
+import numba as nb
 
 from collections import OrderedDict
 from spacy.lang.en import English
@@ -75,6 +76,7 @@ class ManipulateTweet:
 
         return modified_tokens if len(modified_tokens) > 0 else None
 
+    @nb.jit
     def tokenize_tweets(self, tweet_data):
         """
         Tokenizes tweet data and converts it to dict (to be accessed properly

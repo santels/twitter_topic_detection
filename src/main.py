@@ -46,13 +46,13 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    #tokens = manip_tweet.tokenize_tweets(documents_3[:20])
-    tokens = manip_tweet.tokenize_tweets(documents2)
+    #tokens = manip_tweet.tokenize_tweets(documents_3[:100])
+    tokens = manip_tweet.tokenize_tweets(documents3)
     print("Tokenization completed!")
     print("No. of tokenized tweets:", len(tokens))
 
-    for k, v in tokens.items():
-        print("{} [{}]\n========".format(k, v))
+    #for k, v in tokens.items():
+    #    print("{} [{}]\n========".format(k, v))
  
     # Similarity function
     sim = Similarity(tokens)

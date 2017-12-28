@@ -1,4 +1,6 @@
 import json
+import time
+import schedule
 
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -6,8 +8,8 @@ from tweepy.streaming import StreamListener
 
 from datetime import datetime
 from http.client import IncompleteRead
-from time import clock
 from urllib3.exceptions import ProtocolError
+
 
 with open('.access_tokens.json') as data_file:
     data = json.load(data_file)
@@ -18,10 +20,35 @@ consumer_key = data["consumer_key"]
 consumer_secret = data["consumer_secret"]
 
 
+def run_streamer(tsl, auth):
+    """
+    Entry point of the streamer.
+    """
+    timestr = time.strftime("%Y%m%d-%H%M")
+    tsl.pathname = 'data/td-' + timestr + '.txt'
+    # Tries to reconnect to stream after IncompleteRead/ProtocolError
+    # exceptions are caught.
+    while True:
+        try:
+            # Connect/reconnect the stream
+            stream = Stream(auth, tsl)
+            stream.sample()
+            print("Getting samples...")
+        except (IncompleteRead, ProtocolError):
+            # Ignores exception and continues
+            continue
+        except KeyboardInterrupt:
+            # Exits loop
+            print("Stream ended.")
+            stream.disconnect()
+            break
+
+
 class TweetStreamListener(StreamListener):
     """ A listener handles tweets that are received from the stream.
         Writes retrieved tweets to file.
     """
+    pathname = ''
 
     def on_status(self, status):
         """
@@ -29,7 +56,7 @@ class TweetStreamListener(StreamListener):
         """
         try:
             # Save streamed tweets to "data" folder
-            with open('data/tweets_data.txt', 'a') as td:
+            with open(self.pathname, 'a') as td:
                 # If tweet language is English, save
                 if (status.lang is not None and status.lang == 'en'):
                     td.write(json.dumps(status._json))
@@ -54,30 +81,14 @@ class TweetStreamListener(StreamListener):
 if __name__ == '__main__':
 
     print("Time started: {}".format(datetime.now()))
-
     #This handles Twitter authetification and the connection to Twitter Streaming API
     tsl = TweetStreamListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
-    # stream = Stream(auth, tsl)
 
-    # stream.filter(languages=['en'], track=['python', 'javascript', 'ruby'])
-    # stream.sample()
+    schedule.every(30).minutes.do(run_streamer, tsl, auth)
 
-    # Tries to reconnect to stream after IncompleteRead/ProtocolError exceptions are caught
     while True:
-        try:
-            # Connect/reconnect the stream
-            stream = Stream(auth, tsl)
-            stream.sample()
-            print("Getting samples...")
-        except (IncompleteRead, ProtocolError):
-            # Ignores exception and continues
-            continue
-        except KeyboardInterrupt:
-            # Exits loop
-            print("Stream ended.")
-            stream.disconnect()
-            break
+        schedule.run_pending()
 
     print("Time ended: {}".format(datetime.now()))
