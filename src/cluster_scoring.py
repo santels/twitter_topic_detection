@@ -9,7 +9,7 @@ Scores clusters implementing (Manaskasemsak, 2016)'s paper:
 
 def score(sim, cluster_mat, cluster_indices):
     """ Gets scores of clusters. """
-    for cluster in iter(cluster_indices):
+    for cluster in cluster_indices:
         r_deg = get_tweet_related_degree(sim, cluster_mat, cluster)
         e_size = get_event_size(cluster, cluster_indices)
 
@@ -27,7 +27,7 @@ def get_tweet_related_degree(sim, cluster_mat, cluster):
 def get_centroid_vector(cluster, cluster_mat):
     """ Gets centroid vector of a cluster. """
     total_mat = np.zeros((1, cluster_mat.shape[1]))
-    for i in iter(cluster):
+    for i in cluster:
         total_mat += cluster_mat[i]
     return total_mat / len(cluster)
 
@@ -35,7 +35,7 @@ def get_centroid_vector(cluster, cluster_mat):
 def get_event_size(cluster, cluster_indices):
     """ Gets event size of a graph. """
     cl_graph_size = 0
-    for cl in iter(cluster_indices):
+    for cl in cluster_indices:
         cl_graph_size += len(cl)
 
     return len(cluster) / cl_graph_size

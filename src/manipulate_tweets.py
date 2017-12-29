@@ -1,9 +1,9 @@
 import re
 import json
+import spacy
 import numba as nb
 
 from collections import OrderedDict
-from spacy.lang.en import English
 
 from stop_words import STOP_WORDS
 
@@ -14,7 +14,7 @@ class ManipulateTweet:
     """
 
     def __init__(self):
-        self.nlp = English()
+        self.nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 
     def load_tweets_data(self, path):
         """
@@ -38,7 +38,7 @@ class ManipulateTweet:
             2. Removes emojis and special characters
             3. Removes "RT"'s and @ symbols indicating mentions
         """
-        tweets = [self._clean_tweet(t["text"]) for t in iter(tweet_data)]
+        tweets = [self._clean_tweet(t["text"]) for t in tweet_data]
         return tweets
 
     def _merge_hashtags(self, tweet, tokens):
@@ -62,13 +62,16 @@ class ManipulateTweet:
         tokens = [i for i in tokens if not i.is_punct and
                   re.search(r'[\[\];\'\":<>,.\/?=\+\-\_\)\(*&\^%\$@!~`\\|\{\}]',
                             i.norm_) is None and
+                  not i.is_stop              and
                   i.norm_ not in STOP_WORDS  and
                   "'" != i.norm_[0]          and
                   i.is_ascii                 and
+                  i.pos_ in ('NOUN', 'PROPN', 'VERB', 'NUM', 'SYM') and
                   not i.is_space]
 
         modified_tokens = []
         for tok in tokens:
+            print(tok, tok.lemma_, tok.pos_)
             if '#' in tok.norm_:
                 modified_tokens.append(tok.norm_)
             else:
@@ -83,7 +86,7 @@ class ManipulateTweet:
         in other modules). With document as keys and tokens as values.
         """
         tokens = OrderedDict()
-        for tweet in iter(tweet_data):
+        for tweet in tweet_data:
             tokenized = self._tokenize(tweet)
             if tokenized is not None:
                 tokens[tweet.lower()] = tokenized

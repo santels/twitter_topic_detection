@@ -28,12 +28,13 @@ def run_streamer(tsl, auth):
     tsl.pathname = 'data/td-' + timestr + '.txt'
     # Tries to reconnect to stream after IncompleteRead/ProtocolError
     # exceptions are caught.
+    print("Stream running...")
     while True:
         try:
             # Connect/reconnect the stream
             stream = Stream(auth, tsl)
-            stream.sample()
             print("Getting samples...")
+            stream.sample()
         except (IncompleteRead, ProtocolError):
             # Ignores exception and continues
             continue

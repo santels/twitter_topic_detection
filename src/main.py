@@ -29,7 +29,7 @@ def run():
                   "I think that was magnitude 5.4?!?! I thought I died! Damn, nigga, wtf. Where was the epicenter??",
                   "That trembles the ground so much, man!!!! Aftershock would kill mah guts.",
                   "Martin played with his new PS4.",
-                  "Lucas really liked gaming.",
+                  "Lucas really liked gaming with his PS4.",
                   "Quit playing games with mah heart, mofo!",
                   ]
 
@@ -46,14 +46,14 @@ def run():
     tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
     documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
-    #tokens = manip_tweet.tokenize_tweets(documents_3[:100])
-    tokens = manip_tweet.tokenize_tweets(documents3)
+    #tokens = manip_tweet.tokenize_tweets(documents_3[:20])
+    tokens = manip_tweet.tokenize_tweets(documents2)
     print("Tokenization completed!")
     print("No. of tokenized tweets:", len(tokens))
 
     #for k, v in tokens.items():
     #    print("{} [{}]\n========".format(k, v))
- 
+
     # Similarity function
     sim = Similarity(tokens)
     print("No. of Features:", len(sim._features))

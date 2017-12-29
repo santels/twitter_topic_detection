@@ -82,15 +82,24 @@ class Similarity:
                 M2 = self.matrix
         return cosine_similarity(M1, M2)
 
-    def _multiply_elements(self, v1, v2, feature_score_list):
+    def _multiply_elements(self, v1, v2):
         """
         Multiplies values between vector elements and similarity function
         scores.
         """
         total_score = 0
-        for i in range(v1.shape[0]):
-            for j in range(v2.shape[0]):
-                total_score += v1[i] * v2[j] * feature_score_list[i, j]
+        #for i in range(v1.shape[0]):
+        #    for j in range(v2.shape[0]):
+        #        total_score += v1[i] * v2[j] * self._get_score(
+        #                self._features[i], self._features[j])
+
+        total_score = np.sum(
+                np.fromiter(
+                    (v1[i] * v2[j] * self._get_score(
+                        self._features[i], self._features[j])
+                    for i in range(v1.shape[0])
+                    for j in range(v2.shape[0])), v1.dtype)
+                )
         return total_score
 
     @nb.jit
@@ -103,36 +112,31 @@ class Similarity:
         """
         v1 = v1.toarray()[0]
         v2 = v2.toarray()[0]
-        feature_score_list = self._get_scores(v1.shape[0], v2.shape[0])
-        product = self._multiply_elements(v1, v2, feature_score_list)
-        denom1 = math.sqrt(self._multiply_elements(v1, v1, feature_score_list))
-        denom2 = math.sqrt(self._multiply_elements(v2, v2, feature_score_list))
+        product = self._multiply_elements(v1, v2)
+        denom1 = math.sqrt(self._multiply_elements(v1, v1))
+        denom2 = math.sqrt(self._multiply_elements(v2, v2))
 
         if denom1 == 0 or denom2 == 0:
             return 0
 
         return product / (denom1 * denom2)
 
-    def _get_scores(self, v1_len, v2_len):
+    def _get_score(self, feature1, feature2):
         """
         Gets and filters feature score and ignores score less than the
         specified threshold.
         """
-        score_list = np.zeros([v1_len, v2_len])
         features = self._features
-        for i in range(v1_len):
-            for j in range(v2_len):
+        feature_score = 0
+        # Same terms have 1.0 similarity.
+        if feature1 == feature2:
+            feature_score = 1
+        else:
+            feature_score = self._get_feature_score(feature1,
+                    feature2)
+            if feature_score <= THRESHOLD:
                 feature_score = 0
-                # Same terms have 1.0 similarity.
-                if features[i] == features[j]:
-                    feature_score = 1
-                else:
-                    feature_score = self._get_feature_score(features[i],
-                            features[j])
-                    if feature_score <= THRESHOLD:
-                        feature_score = 0
-                score_list[i, j] = feature_score
-        return score_list
+        return feature_score
 
     def _get_synsets(self, term1, term2):
         """
@@ -148,10 +152,9 @@ class Similarity:
             return None, None
         else:
             best_pair = [None, None]
-            for i in iter(synset_list1):
-                i_shortest_path_distance = i.shortest_path_distance
-                for j in iter(synset_list2):
-                    score = 1.0 / (i_shortest_path_distance(j, True) + 1)
+            for i in synset_list1:
+                for j in synset_list2:
+                    score = 1.0 / (i.shortest_path_distance(j, True) + 1)
                     if score is not None and score > max_score:
                         max_score = score
                         best_pair = [i, j]
