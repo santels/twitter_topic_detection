@@ -1,7 +1,6 @@
-# twitter_topic_detection
-## Semantic-based Twitter Topic Detection Using Markov Clustering Algorithm
+# Semantic-based Twitter Topic Detection Using Markov Clustering Algorithm
 
-_By: Santelices, Andrew P. | Talan, Wesly Kate N._
+__By: Santelices, Andrew P. | Talan, Wesly Kate N.__
 
 ## Requirements:
 * Python 3.x
@@ -21,9 +20,14 @@ _By: Santelices, Andrew P. | Talan, Wesly Kate N._
     apt-get install python3-dev
     apt-get install libevent-dev
     ```
-3. Install NLTK's Wordnet package.
+3. Install NLTK's Wordnet package:
     ```bash
     python3 -m nltk.downloader wordnet
+    ```
+4. Install additional packages:
+    ```bash
+    # spaCy's English model. Using the smallest model available:
+    python3 -m spacy download en_core_web_sm
     ```
 
 ## To Run:
