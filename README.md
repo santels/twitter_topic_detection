@@ -19,6 +19,8 @@ __By: Santelices, Andrew P. | Talan, Wesly Kate N.__
     ```bash
     apt-get install python3-dev
     apt-get install libevent-dev
+    # And in installing Cython, you need to install:
+    apt-get install build-essential
     ```
 3. Install NLTK's Wordnet package:
     ```bash
