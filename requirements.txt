@@ -1,5 +1,4 @@
 nltk==3.2.5
-numba==0.36.2
 numpy==1.13.3
 schedule==0.5.0
 scikit_learn==0.19.1
