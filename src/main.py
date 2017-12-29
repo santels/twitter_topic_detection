@@ -56,7 +56,7 @@ def run():
 
     # Similarity function
     sim = Similarity(tokens)
-    print("No. of Features:", len(sim._features))
+    print("No. of Features:", len(sim.get_features()))
     #score_matrix = sim.cos_similarity() # Cosine similarity
     score_matrix = sim.similarity()    # Soft cosine similarity
     print("Similarity function operation completed!")

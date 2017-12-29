@@ -1,7 +1,6 @@
 import re
 import json
 import spacy
-import numba as nb
 
 from collections import OrderedDict
 
@@ -71,7 +70,6 @@ class ManipulateTweet:
 
         modified_tokens = []
         for tok in tokens:
-            print(tok, tok.lemma_, tok.pos_)
             if '#' in tok.norm_:
                 modified_tokens.append(tok.norm_)
             else:
@@ -79,7 +77,6 @@ class ManipulateTweet:
 
         return modified_tokens if len(modified_tokens) > 0 else None
 
-    @nb.jit
     def tokenize_tweets(self, tweet_data):
         """
         Tokenizes tweet data and converts it to dict (to be accessed properly
