@@ -61,14 +61,14 @@ cdef class Similarity:
         Multiplies values between vector elements and similarity function
         scores.
         """
-        cdef double total_score = 0
+        cdef double total_score = 0.0
         for i in range(v1.shape[0]):
             for j in range(v2.shape[0]):
                 total_score += v1[i] * v2[j] * self._get_score(
                         self._features[i], self._features[j])
         return total_score
 
-    cdef double _soft_cosine_similarity(self, np.ndarray[DOUBLE_t, ndim=1] v1,
+    cdef DOUBLE_t _soft_cosine_similarity(self, np.ndarray[DOUBLE_t, ndim=1] v1,
             np.ndarray[DOUBLE_t, ndim=1] v2):
         """
         Soft Cosine Similarity Measure
@@ -99,20 +99,15 @@ cdef class Similarity:
         cdef int M2_len = M2.shape[0]
 
         # Get the sum of consecutive integers for the size of the array
-        doc_pairs = {}
-        doc_sim = np.zeros([M1_len, M2_len])
+        cdef np.ndarray[DOUBLE_t, ndim=2] doc_sim = np.zeros([M1_len, M2_len])
+
         for i in range(M1_len):
             for j in range(M2_len):
-                sorted_indices = tuple(sorted((i, j)))
-                if sorted_indices in doc_pairs:
-                    doc_sim[i, j] = doc_pairs[sorted_indices]
+                if i == j:
+                    doc_sim[i, j] = 1.0
                 else:
-                    if i == j:
-                        doc_sim[i, j] = 1
-                    else:
-                        doc_sim[i, j] = self._soft_cosine_similarity(M1[i],
-                                                                     M2[j])
-                        doc_pairs[sorted_indices] = doc_sim[i, j]
+                    doc_sim[i, j] = self._soft_cosine_similarity(M1[i],
+                                                                 M2[j])
         print("Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - self.start)))
         return doc_sim
 
@@ -127,12 +122,11 @@ cdef class Similarity:
         return cosine_similarity(M1, M2)
 
 
-    def _get_score(self, feature1, feature2):
+    cdef double _get_score(self, str feature1, str feature2):
         """
         Gets and filters feature score and ignores score less than the
         specified threshold.
         """
-        cdef list features = self._features
         cdef double feature_score = 0
         # Same terms have 1.0 similarity.
         if feature1 == feature2:
@@ -152,28 +146,28 @@ cdef class Similarity:
         """
         synset_list1 = wn.synsets(term1)
         synset_list2 = wn.synsets(term2)
-        max_score = -1.0
-
+        cdef float max_score = -1.0
         if (len(synset_list1) == 0) or (len(synset_list2) == 0):
             return None, None
-        else:
-            best_pair = [None, None]
-            for i in synset_list1:
-                for j in synset_list2:
-                    score = 1.0 / (i.shortest_path_distance(j, True) + 1)
-                    if score is not None and score > max_score:
-                        max_score = score
-                        best_pair = [i, j]
 
-            if (best_pair[0] is not None) and \
-                    (best_pair[0].pos() not in ('n', 'v')):
-                best_pair[0] = self._get_related_nouns(best_pair[0])
+        cdef list best_pair = [None, None]
+        cdef float score
+        for i in synset_list1:
+            for j in synset_list2:
+                score = 1.0 / (i.shortest_path_distance(j, True) + 1)
+                if score is not None and score > max_score:
+                    max_score = score
+                    best_pair = [i, j]
 
-            if (best_pair[1] is not None) and \
-                    (best_pair[1].pos() not in ('n', 'v')):
-                best_pair[1] = self._get_related_nouns(best_pair[1])
+        if (best_pair[0] is not None) and \
+                (best_pair[0].pos() not in ('n', 'v')):
+            best_pair[0] = self._get_related_nouns(best_pair[0])
 
-            return tuple(best_pair)
+        if (best_pair[1] is not None) and \
+                (best_pair[1].pos() not in ('n', 'v')):
+            best_pair[1] = self._get_related_nouns(best_pair[1])
+
+        return tuple(best_pair)
 
     def _get_related_nouns(self, synset):
         """
@@ -181,20 +175,20 @@ cdef class Similarity:
         synset to measure its similarity to other terms.
         """
         related = None
-        lemmas = synset.lemmas()
+        cdef list lemmas = synset.lemmas()
         if len(lemmas) > 0:
             derived = lemmas[0].derivationally_related_forms()
             if len(derived) > 0:
                 related = derived[0].synset()
         return related
 
-    def _get_feature_score(self, term1, term2):
+    cdef double _get_feature_score(self, str term1, str term2):
         """
         If term1 and term2 are synsets, returns their similarity score. If they
         are lists, gets all similarity scores of each element and returns the
         best score.
         """
-        sorted_terms = tuple(sorted((term1, term2)))
+        cdef tuple sorted_terms = tuple(sorted((term1, term2)))
 
         # Checks if synset pair has already been calculated.
         if sorted_terms in self._synset_pairs:
@@ -203,13 +197,13 @@ cdef class Similarity:
         # If a term contains a hashtag, it automatically does not contain
         # synsets, thus, returning 0.
         if any("#" in term for term in (term1, term2)):
-            return 0
+            return 0.0
 
         # If a term has does not fully contains alpha characters, it has no
         # synsets.
         if any(re.search(r'^([a-zA-Z]+[-]?[a-zA-Z]+)$', term) is None
                for term in (term1, term2)):
-            return 0
+            return 0.0
 
         # If the synset of a term  has already been captured. Checks the cache
         # to get the synset of a term faster.
@@ -227,12 +221,15 @@ cdef class Similarity:
 
             if syn2 is not None:
                 self._synsets[term2] = syn2
-            return 0
+            return 0.0
 
-        score = wn.wup_similarity(syn1, syn2)
+        cdef double score
+        _score = wn.wup_similarity(syn1, syn2)
 
-        if score is None:
-            score = 0
+        if _score is None:
+            score = 0.0
+        else:
+            score = _score
 
         self._synset_pairs[sorted_terms] = score
         return score

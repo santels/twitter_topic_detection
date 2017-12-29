@@ -10,3 +10,7 @@ nltk_data/
 
 # Virtual environement
 venv/
+
+# Cython
+build/
+*.o
