@@ -3,6 +3,7 @@ from __future__ import print_function
 import re
 import math
 import time
+#import sqlite3
 import numpy as np
 cimport numpy as np
 
@@ -12,9 +13,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-THRESHOLD = 0.5
+#conn = sqlite3.connect('.temp/word_scores.db')
+THRESHOLD = 0.6
 
 ctypedef np.double_t DOUBLE_t
+ctypedef np.int_t INT_t
 
 
 cdef class Similarity:
@@ -32,20 +35,27 @@ cdef class Similarity:
         """
         Similarity class constructor.
         """
-        self.get_tfidf(tokens)
+        self.initialize(tokens)
         self._synset_pairs = {}
         self._synsets = {}
         self.start = time.time()
 
-    def get_tfidf(self, tokens):
+    def initialize(self, tokens):
         """
-        Utility function to get TF-IDF values of documents and its features.
+        Utility function to initialize and setup database connection and
+        get TF-IDF values of documents and its features.
         """
         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
         matrix_csr = tfidf.fit_transform(tokens.keys())
 
         self.matrix = matrix_csr.A
         self._features = tfidf.get_feature_names()
+        #conn.execute("DROP TABLE IF EXISTS tblWord")
+        #conn.execute("CREATE TABLE tblWord(wordPair UNIQUE, score REAL)")
+
+        # Inserts feature/word pairs to the database.
+        
+
 
     def get_features(self):
         """
@@ -62,8 +72,11 @@ cdef class Similarity:
         scores.
         """
         cdef double total_score = 0.0
-        for i in range(v1.shape[0]):
-            for j in range(v2.shape[0]):
+        cdef np.ndarray[INT_t, ndim=1] v1nz = v1.nonzero()[0]
+        cdef np.ndarray[INT_t, ndim=1] v2nz = v2.nonzero()[0]
+
+        for i in v1nz:
+            for j in v2nz:
                 total_score += v1[i] * v2[j] * self._get_score(
                         self._features[i], self._features[j])
         return total_score
@@ -138,7 +151,7 @@ cdef class Similarity:
                 feature_score = 0
         return feature_score
 
-    def _get_synsets(self, term1, term2):
+    cdef tuple _get_synsets(self, str term1, str term2):
         """
         Gets best synsets of each term based on the highest path similarity
         among all pairs compared; if the synset's pos() is not a noun or verb,
@@ -150,6 +163,7 @@ cdef class Similarity:
         if (len(synset_list1) == 0) or (len(synset_list2) == 0):
             return None, None
 
+        #cdef list best_pair = [synset_list1[0], synset_list2[0]]
         cdef list best_pair = [None, None]
         cdef float score
         for i in synset_list1:
@@ -166,7 +180,6 @@ cdef class Similarity:
         if (best_pair[1] is not None) and \
                 (best_pair[1].pos() not in ('n', 'v')):
             best_pair[1] = self._get_related_nouns(best_pair[1])
-
         return tuple(best_pair)
 
     def _get_related_nouns(self, synset):
@@ -188,11 +201,12 @@ cdef class Similarity:
         are lists, gets all similarity scores of each element and returns the
         best score.
         """
-        cdef tuple sorted_terms = tuple(sorted((term1, term2)))
+        term1, term2 = tuple(sorted((term1, term2)))
+        cdef tuple sorted_terms = (term1, term2)
 
         # Checks if synset pair has already been calculated.
         if sorted_terms in self._synset_pairs:
-            return self._synset_pairs[tuple(sorted((term1, term2)))]
+            return self._synset_pairs[sorted_terms]
 
         # If a term contains a hashtag, it automatically does not contain
         # synsets, thus, returning 0.

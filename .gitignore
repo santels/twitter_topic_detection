@@ -12,5 +12,5 @@ nltk_data/
 venv/
 
 # Cython
-build/
+build
 *.o
