@@ -85,7 +85,7 @@ def get_clusters(M):
 
 
 def cluster(M, exp_power=2, inf_power=2, iter_count=10,
-            pr_threshold=0.001):
+            pr_threshold=0.01):
     """
     Performs Markov Clustering Algorithm.
     Clusters matrix with the following steps:
