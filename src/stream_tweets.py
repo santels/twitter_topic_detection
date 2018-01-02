@@ -20,29 +20,17 @@ consumer_key = data["consumer_key"]
 consumer_secret = data["consumer_secret"]
 
 
-def run_streamer(tsl, auth):
+def get_stream_instance():
     """
-    Entry point of the streamer.
+    Returns a dict containig instances of TweetStreamListener and OAuthHandler.
     """
-    timestr = time.strftime("%Y%m%d-%H%M")
-    tsl.pathname = 'data/td-' + timestr + '.txt'
-    # Tries to reconnect to stream after IncompleteRead/ProtocolError
-    # exceptions are caught.
-    print("Stream running...")
-    while True:
-        try:
-            # Connect/reconnect the stream
-            stream = Stream(auth, tsl)
-            print("Getting samples...")
-            stream.sample()
-        except (IncompleteRead, ProtocolError):
-            # Ignores exception and continues
-            continue
-        except KeyboardInterrupt:
-            # Exits loop
-            print("Stream ended.")
-            stream.disconnect()
-            break
+    tsl = TweetStreamListener()
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    return {
+             "tsl":tsl,
+             "auth":auth
+           }
 
 
 class TweetStreamListener(StreamListener):
@@ -77,19 +65,3 @@ class TweetStreamListener(StreamListener):
         Called when limitation notice arrives on stream.
         """
         print("[WARNING] Limitation notice received: {}".format(track))
-
-
-if __name__ == '__main__':
-
-    print("Time started: {}".format(datetime.now()))
-    #This handles Twitter authetification and the connection to Twitter Streaming API
-    tsl = TweetStreamListener()
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-
-    schedule.every(30).minutes.do(run_streamer, tsl, auth)
-
-    while True:
-        schedule.run_pending()
-
-    print("Time ended: {}".format(datetime.now()))

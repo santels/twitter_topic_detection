@@ -27,7 +27,6 @@ class ManipulateTweet:
                 tweets_data.append(tweet)
             except:
                 continue
-
         return tweets_data
 
     def preprocess_tweet(self, tweet_data):
