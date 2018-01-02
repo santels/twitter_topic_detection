@@ -1,1 +1,3 @@
 .access_tokens.json
+*.db
+*.db-journal
