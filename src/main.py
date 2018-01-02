@@ -38,20 +38,21 @@ def run():
                   "The sun is bright.",
                   "I saw Jim's wife yesterday with their dog, Barn.",
                   "The sun in the sky is bright.",
-                  "We can see the shining sun, the bright sun.",
-                  "Marissa--Jim's wife--was walking with Barn earlier."]
+                  "We can see the scorching sun, the bright sun.",
+                  "Marissa--Jim's wife--was walking with Barn earlier.",
+                  "Have you seen the the moon and Earth?"]
 
     tweets_data_path = "data/tweets_data_3.txt"
 
     start = time.time()
     manip_tweet = ManipulateTweet()
 
-    #tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
-    #documents_3 = manip_tweet.preprocess_tweet(tweets_data)
+    tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
+    documents_3 = manip_tweet.preprocess_tweet(tweets_data)
 
     print("Tokenizing...")
-    #tokens = manip_tweet.tokenize_tweets(documents_3[:20])
-    tokens = manip_tweet.tokenize_tweets(documents3)
+    tokens = manip_tweet.tokenize_tweets(documents_3[800:900])
+    #tokens = manip_tweet.tokenize_tweets(documents2)
     print("Tokenization completed!")
     print("No. of tokenized tweets:", len(tokens))
     print("> Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - start)))

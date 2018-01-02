@@ -12,10 +12,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 conn = sqlite3.connect('.word_scores.db')
 cur = conn.cursor()
-THRESHOLD = 0.6
-
-ctypedef np.double_t DOUBLE_t
-ctypedef np.int_t INT_t
 
 
 cdef class Similarity:
@@ -24,16 +20,11 @@ cdef class Similarity:
     using WordNet's wup_similarity function for getting feature similarity
     score.
     """
-    cdef np.ndarray matrix
-    cdef list _features
-    cdef dict _synsets
-
-    def __cinit__(self, tokens):
+    def __init__(self, tokens):
         """
         Similarity class constructor.
         """
         self.initialize(tokens)
-        self._synsets = {}
 
     def initialize(self, tokens):
         """
@@ -41,9 +32,9 @@ cdef class Similarity:
         get TF-IDF values of documents and its features.
         """
         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
-        matrix_csr = tfidf.fit_transform(tokens.keys())
+        self.matrix = tfidf.fit_transform(tokens.keys()).A
+        self.THRESHOLD = 0.6
 
-        self.matrix = matrix_csr.A
         self._features = tfidf.get_feature_names()
         conn.execute("DROP TABLE IF EXISTS tblWord")
         conn.execute("CREATE TABLE tblWord(wordPair UNIQUE, score DOUBLE)")
@@ -56,16 +47,23 @@ cdef class Similarity:
         """
         return self._features
 
-    def similarity(self, M1=None, M2=None, is_scoring=False):
+    def similarity(self, M1=None, M2=None):
         """
-        Calculates similarity measure of each document matrix. Uses soft cosine
-        similarity measure to calculate document similarities.
+        Similarity function wrapper. This is what will be called by other
+        modules.
         """
         if M1 is None:
             M1 = self.matrix
             if M2 is None:
                 M2 = self.matrix
+        return self._similarity(M1, M2)
 
+    cdef np.ndarray[DOUBLE_t, ndim=2] _similarity(self,
+            np.ndarray[DOUBLE_t, ndim=2] M1, np.ndarray[DOUBLE_t, ndim=2] M2):
+        """
+        Calculates similarity measure of each document matrix. Uses soft cosine
+        similarity measure to calculate document similarities.
+        """
         cdef int M1_len = M1.shape[0]
         cdef int M2_len = M2.shape[0]
 
@@ -92,15 +90,15 @@ cdef class Similarity:
                 M2 = self.matrix
         return cosine_similarity(M1, M2)
 
-    cdef double _multiply_elements(self ,np.ndarray[DOUBLE_t, ndim=1] v1,
+    cdef DOUBLE_t _multiply_elements(self ,np.ndarray[DOUBLE_t, ndim=1] v1,
             np.ndarray[DOUBLE_t, ndim=1] v2):
         """
         Multiplies values between vector elements and similarity function
         scores.
         """
-        cdef double total_score = 0.0
-        cdef np.ndarray[INT_t, ndim=1] v1nz = v1.nonzero()[0]
-        cdef np.ndarray[INT_t, ndim=1] v2nz = v2.nonzero()[0]
+        cdef DOUBLE_t total_score = 0.0
+        cdef object v1nz = iter(v1.nonzero()[0])
+        cdef object v2nz = iter(v2.nonzero()[0])
 
         for i in v1nz:
             for j in v2nz:
@@ -116,29 +114,29 @@ cdef class Similarity:
         Traditional Cosine Similarity Measure that takes into account the
         semantic similarities of each features in each documents.
         """
-        cdef double product = self._multiply_elements(v1, v2)
-        cdef double denom1 = math.sqrt(self._multiply_elements(v1, v1))
-        cdef double denom2 = math.sqrt(self._multiply_elements(v2, v2))
+        cdef DOUBLE_t product = self._multiply_elements(v1, v2)
+        cdef DOUBLE_t denom1 = math.sqrt(self._multiply_elements(v1, v1))
+        cdef DOUBLE_t denom2 = math.sqrt(self._multiply_elements(v2, v2))
 
         if denom1 == 0 or denom2 == 0:
             return 0
 
         return product / (denom1 * denom2)
 
-    cdef double _get_score(self, str feature1, str feature2):
+    cdef DOUBLE_t _get_score(self, str feature1, str feature2):
         """
         Gets and filters feature score and ignores score less than the
         specified threshold.
         """
-        cdef double feature_score = 0
+        cdef DOUBLE_t feature_score = 0.0
         # Same terms have 1.0 similarity.
         if feature1 == feature2:
-            feature_score = 1
+            feature_score = 1.0
         else:
             feature_score = self._get_feature_score(feature1,
                     feature2)
-            if feature_score <= THRESHOLD:
-                feature_score = 0
+            if feature_score < self.THRESHOLD:
+                feature_score = 0.0
 
             word_pair = ' '.join(sorted([feature1, feature2]))
             try:
@@ -159,22 +157,20 @@ cdef class Similarity:
         """
         synset_list1 = wn.synsets(term1)
         synset_list2 = wn.synsets(term2)
-        cdef float max_score = -1.0
 
         if (len(synset_list1) == 0) or (len(synset_list2) == 0):
             return None, None
 
-        cdef tuple best_pair = (synset_list1[0], synset_list2[0])
-        return best_pair
+        return (synset_list1[0], synset_list2[0])
 
-    cdef double _get_feature_score(self, str term1, str term2):
+    cdef DOUBLE_t _get_feature_score(self, str term1, str term2):
         """
         If term1 and term2 are synsets, returns their similarity score. If they
         are lists, gets all similarity scores of each element and returns the
         best score.
         """
         cdef tuple sorted_terms
-        cdef double score
+        cdef DOUBLE_t score
 
         term1, term2 = tuple(sorted((term1, term2)))
         sorted_terms = (term1, term2)
@@ -197,22 +193,11 @@ cdef class Similarity:
                for term in sorted_terms):
             return 0.0
 
-        # If the synset of a term  has already been captured. Checks the cache
-        # to get the synset of a term faster.
-        syn1 = self._synsets.get(term1)
-        syn2 = self._synsets.get(term2)
-
-        if all(syn is None for syn in (syn1, syn2)):
-            syn1, syn2 = self._get_synsets(term1, term2)
+        syn1, syn2 = self._get_synsets(term1, term2)
 
         # Checks if one/both synset/s is/are not found in WordNet. If it's not
         # found, its value is None, otherwise, caches the Synset object.
         if syn1 is None or syn2 is None:
-            if syn1 is not None:
-                self._synsets[term1] = syn1
-
-            if syn2 is not None:
-                self._synsets[term2] = syn2
             return 0.0
 
         _score = wn.wup_similarity(syn1, syn2)
