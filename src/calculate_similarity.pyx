@@ -33,7 +33,7 @@ cdef class Similarity:
         """
         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
         self.matrix = tfidf.fit_transform(tokens.keys()).A
-        self.THRESHOLD = 0.6
+        self.THRESHOLD = 0.7
 
         self._features = tfidf.get_feature_names()
         conn.execute("DROP TABLE IF EXISTS tblWord")
@@ -90,7 +90,7 @@ cdef class Similarity:
                 M2 = self.matrix
         return cosine_similarity(M1, M2)
 
-    cdef DOUBLE_t _multiply_elements(self ,np.ndarray[DOUBLE_t, ndim=1] v1,
+    cdef DOUBLE_t _multiply_elements(self, np.ndarray[DOUBLE_t, ndim=1] v1,
             np.ndarray[DOUBLE_t, ndim=1] v2):
         """
         Multiplies values between vector elements and similarity function

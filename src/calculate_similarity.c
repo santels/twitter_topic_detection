@@ -2315,7 +2315,7 @@ static PyObject *__pyx_pw_20calculate_similarity_10Similarity_3initialize(PyObje
  *         """
  *         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])             # <<<<<<<<<<<<<<
  *         self.matrix = tfidf.fit_transform(tokens.keys()).A
- *         self.THRESHOLD = 0.6
+ *         self.THRESHOLD = 0.7
  */
 
 /* Python wrapper */
@@ -2396,7 +2396,7 @@ static PyObject *__pyx_pf_20calculate_similarity_10Similarity_2initialize(struct
  *         """
  *         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])             # <<<<<<<<<<<<<<
  *         self.matrix = tfidf.fit_transform(tokens.keys()).A
- *         self.THRESHOLD = 0.6
+ *         self.THRESHOLD = 0.7
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_TfidfVectorizer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -2417,7 +2417,7 @@ static PyObject *__pyx_pf_20calculate_similarity_10Similarity_2initialize(struct
  *         """
  *         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
  *         self.matrix = tfidf.fit_transform(tokens.keys()).A             # <<<<<<<<<<<<<<
- *         self.THRESHOLD = 0.6
+ *         self.THRESHOLD = 0.7
  * 
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_tfidf, __pyx_n_s_fit_transform); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
@@ -2501,14 +2501,14 @@ static PyObject *__pyx_pf_20calculate_similarity_10Similarity_2initialize(struct
   /* "calculate_similarity.pyx":36
  *         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
  *         self.matrix = tfidf.fit_transform(tokens.keys()).A
- *         self.THRESHOLD = 0.6             # <<<<<<<<<<<<<<
+ *         self.THRESHOLD = 0.7             # <<<<<<<<<<<<<<
  * 
  *         self._features = tfidf.get_feature_names()
  */
-  __pyx_v_self->THRESHOLD = 0.6;
+  __pyx_v_self->THRESHOLD = 0.7;
 
   /* "calculate_similarity.pyx":38
- *         self.THRESHOLD = 0.6
+ *         self.THRESHOLD = 0.7
  * 
  *         self._features = tfidf.get_feature_names()             # <<<<<<<<<<<<<<
  *         conn.execute("DROP TABLE IF EXISTS tblWord")
@@ -3355,7 +3355,7 @@ static PyObject *__pyx_pf_20calculate_similarity_10Similarity_8cos_similarity(st
  *                 M2 = self.matrix
  *         return cosine_similarity(M1, M2)             # <<<<<<<<<<<<<<
  * 
- *     cdef DOUBLE_t _multiply_elements(self ,np.ndarray[DOUBLE_t, ndim=1] v1,
+ *     cdef DOUBLE_t _multiply_elements(self, np.ndarray[DOUBLE_t, ndim=1] v1,
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_cosine_similarity);
@@ -3436,7 +3436,7 @@ static PyObject *__pyx_pf_20calculate_similarity_10Similarity_8cos_similarity(st
 /* "calculate_similarity.pyx":93
  *         return cosine_similarity(M1, M2)
  * 
- *     cdef DOUBLE_t _multiply_elements(self ,np.ndarray[DOUBLE_t, ndim=1] v1,             # <<<<<<<<<<<<<<
+ *     cdef DOUBLE_t _multiply_elements(self, np.ndarray[DOUBLE_t, ndim=1] v1,             # <<<<<<<<<<<<<<
  *             np.ndarray[DOUBLE_t, ndim=1] v2):
  *         """
  */
@@ -3760,7 +3760,7 @@ static __pyx_t_20calculate_similarity_DOUBLE_t __pyx_f_20calculate_similarity_10
   /* "calculate_similarity.pyx":93
  *         return cosine_similarity(M1, M2)
  * 
- *     cdef DOUBLE_t _multiply_elements(self ,np.ndarray[DOUBLE_t, ndim=1] v1,             # <<<<<<<<<<<<<<
+ *     cdef DOUBLE_t _multiply_elements(self, np.ndarray[DOUBLE_t, ndim=1] v1,             # <<<<<<<<<<<<<<
  *             np.ndarray[DOUBLE_t, ndim=1] v2):
  *         """
  */
