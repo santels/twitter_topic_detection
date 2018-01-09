@@ -155,8 +155,8 @@ cdef class Similarity:
         among all pairs compared; if the synset's pos() is not a noun or verb,
         it gets its related nouns/forms.
         """
-        synset_list1 = wn.synsets(term1)
-        synset_list2 = wn.synsets(term2)
+        cdef list synset_list1 = wn.synsets(term1)
+        cdef list synset_list2 = wn.synsets(term2)
 
         if (len(synset_list1) == 0) or (len(synset_list2) == 0):
             return None, None
@@ -193,7 +193,9 @@ cdef class Similarity:
                for term in sorted_terms):
             return 0.0
 
-        syn1, syn2 = self._get_synsets(term1, term2)
+        cdef tuple synsets = self._get_synsets(term1, term2)
+        cdef object syn1 = synsets[0]
+        cdef object syn2 = synsets[1]
 
         # Checks if one/both synset/s is/are not found in WordNet. If it's not
         # found, its value is None, otherwise, caches the Synset object.

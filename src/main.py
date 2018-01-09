@@ -1,6 +1,7 @@
 import time
 import schedule
 import numpy as np
+from collections import Counter
 
 import mcl
 import cluster_scoring as cs
@@ -112,7 +113,10 @@ def run_tweet_processing():
                   "Marissa--Jim's wife--was walking with Barn earlier.",
                   "Have you seen the the moon and Earth?"]
 
-    tweets_data_path = file_list[-1]
+    if len(file_list) > 0:
+        tweets_data_path = file_list[-1]
+    else:
+        tweets_data_path = 'data/tweets_data_3.txt' # default for now
 
     start = time.time()
     manip_tweet = ManipulateTweet()
@@ -121,7 +125,7 @@ def run_tweet_processing():
     tweets = manip_tweet.preprocess_tweet(tweets_data)
 
     print("Tokenizing...")
-    tokens = manip_tweet.tokenize_tweets(tweets[:100])
+    tokens = manip_tweet.tokenize_tweets(tweets[:50])
     #tokens = manip_tweet.tokenize_tweets(documents2)
     print("Tokenization completed!")
     print("No. of tokenized tweets:", len(tokens))
@@ -146,15 +150,22 @@ def run_tweet_processing():
 
     # Cluster scoring
     print("Scoring...")
-    scores = [s for s in cs.score(sim.similarity, matrix, clusters)]
+    scores = list(cs.score(sim.similarity, matrix, clusters))
+    max_score = max(scores)
+    max_score_index = list(cs.get_max_score_index(scores))
     print("Scoring finished!")
     print("> Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - start)))
 
-    max_score = np.max(scores)
-    tweet_list = list(tokens.keys())
-    for tweet_index in clusters[np.argmax(scores)]:
-        print("{}. {}".format(tweet_index, tweet_list[tweet_index]))
-    print("Max score: {} = {}".format(max_score, clusters[np.argmax(scores)]))
+    tweet_list = list(tokens.values())
+    for index in max_score_index:
+        print(">>> Max Score: {}".format(max_score))
+        for tweet_index in clusters[index]:
+            print("{}. {}".format(tweet_index, tweet_list[tweet_index]))
+
+
+    # Top terms by clusters
+    _get_top_topics_by_clusters(scores, clusters, tweet_list)
+
 
     #print("Features:\n", sim._features)
     #print("Matrix:\n", score_matrix)
@@ -167,10 +178,23 @@ def _get_time(start, interval):
     return round(interval - ((time.time() - start) % interval))
 
 
+def _get_top_topics_by_clusters(scores, clusters, tweet_list, top=5):
+    """ Gets all top topics in each clusters. """
+    top_topics = []
+    score_index = cs.get_score_index(scores)
+    for i, _ in score_index:
+        terms = []
+        for tweet_index in clusters[i]:
+            terms.extend(tweet_list[tweet_index])
+        ctr = Counter(terms)
 
+        topics = sorted(ctr, key=ctr.get, reverse=True)
+        if len(topics) < top:
+            top_topics.append(topics[:len(topics)])
+        else:
+            top_topics.append(topics[:top])
 
-
-
+    return top_topics
 
 
 
@@ -178,12 +202,13 @@ def _get_time(start, interval):
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] in ('--stream-only', '-so'):
-            run('stream')
-        elif sys.argv[1] in ('--process-only', '-po'):
-            run('process')
-        else:
-            run()
-    else:
-        run()
+   # if len(sys.argv) > 1:
+   #     if sys.argv[1] in ('--stream-only', '-so'):
+   #         run('stream')
+   #     elif sys.argv[1] in ('--process-only', '-po'):
+   #         run('process')
+   #     else:
+   #         run()
+   # else:
+   #     run()
+    run_tweet_processing()
