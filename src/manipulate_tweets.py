@@ -69,10 +69,13 @@ class ManipulateTweet:
 
         modified_tokens = []
         for tok in tokens:
-            if '#' in tok.norm_:
+            if len(tok) > 1:
+                if '#' in tok.norm_:
+                    modified_tokens.append(tok.norm_)
+                else:
+                    modified_tokens.append(tok.lemma_.lower())
+            elif tok.is_digit:
                 modified_tokens.append(tok.norm_)
-            else:
-                modified_tokens.append(tok.lemma_.lower())
 
         return modified_tokens if len(modified_tokens) > 0 else None
 
