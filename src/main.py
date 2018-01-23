@@ -80,38 +80,38 @@ def run_tweet_processing():
     Runs modules in processing collected tweets.
     """
     print("Starting operation...")
-    documents = [
-        "Apple is looking at buying U.K. startup for $1 billion",
-        "Autonomous cars shift insurance liability toward manufacturers",
-        "San Francisco considers banning sidewalk delivery robots",
-        "London is a big city in the United Kingdom.",
-        "Where are you?",
-        "Who is the president of France?",
-        "What is the capital of the United States?",
-        "When was Barack Obama born?"
-    ]
+    #    documents = [
+    #        "Apple is looking at buying U.K. startup for $1 billion",
+    #        "Autonomous cars shift insurance liability toward manufacturers",
+    #        "San Francisco considers banning sidewalk delivery robots",
+    #        "London is a big city in the United Kingdom.",
+    #        "Where are you?",
+    #        "Who is the president of France?",
+    #        "What is the capital of the United States?",
+    #        "When was Barack Obama born?"
+    #    ]
 
-    documents2 = ["The sky is blue. #Outdoors",
-                  "The dog is barking.",  # "The sun is bright.",
-                  "The sun in the sky is bright.",
-                  "Was that an earthquake???? Motherfucker!!!",
-                  "We can see the shining sun, the bright sun. #Outdoors",
-                  "The cat is meowing back at the dog.",
-                  "The dog and cat fought each other.",
-                  "I think that was magnitude 5.4?!?! I thought I died! Damn, nigga, wtf. Where was the epicenter??",
-                  "That trembles the ground so much, man!!!! Aftershock would kill mah guts.",
-                  "Martin played with his new PS4.",
-                  "Lucas really liked gaming with his PS4.",
-                  "Quit playing games with mah heart, mofo!",
-                  ]
+    #    documents2 = ["The sky is blue. #Outdoors",
+    #                  "The dog is barking.",  # "The sun is bright.",
+    #                  "The sun in the sky is bright.",
+    #                  "Was that an earthquake???? Motherfucker!!!",
+    #                  "We can see the shining sun, the bright sun. #Outdoors",
+    #                  "The cat is meowing back at the dog.",
+    #                  "The dog and cat fought each other.",
+    #                  "I think that was magnitude 5.4?!?! I thought I died! Damn, nigga, wtf. Where was the epicenter??",
+    #                  "That trembles the ground so much, man!!!! Aftershock would kill mah guts.",
+    #                  "Martin played with his new PS4.",
+    #                  "Lucas really liked gaming with his PS4.",
+    #                  "Quit playing games with mah heart, mofo!",
+    #                  ]
 
-    documents3 = ["The sky is blue.",
-                  "The sun is bright.",
-                  "I saw Jim's wife yesterday with their dog, Barn.",
-                  "The sun in the sky is bright.",
-                  "We can see the scorching sun, the bright sun.",
-                  "Marissa--Jim's wife--was walking with Barn earlier.",
-                  "Have you seen the the moon and Earth?"]
+    #    documents3 = ["The sky is blue.",
+    #                  "The sun is bright.",
+    #                  "I saw Jim's wife yesterday with their dog, Barn.",
+    #                  "The sun in the sky is bright.",
+    #                  "We can see the scorching sun, the bright sun.",
+    #                  "Marissa--Jim's wife--was walking with Barn earlier.",
+    #                  "Have you seen the the moon and Earth?"]
 
     if len(file_list) > 0:
         tweets_data_path = file_list[-1]
@@ -125,7 +125,7 @@ def run_tweet_processing():
     tweets = manip_tweet.preprocess_tweet(tweets_data)
 
     print("Tokenizing...")
-    tokens = manip_tweet.tokenize_tweets(tweets[:50])
+    tokens = manip_tweet.tokenize_tweets(tweets[300:310])
     #tokens = manip_tweet.tokenize_tweets(documents2)
     print("Tokenization completed!")
     print("No. of tokenized tweets:", len(tokens))
@@ -156,15 +156,19 @@ def run_tweet_processing():
     print("Scoring finished!")
     print("> Elapsed:", time.strftime("%H:%M:%S", time.gmtime(time.time() - start)))
 
-    tweet_list = list(tokens.values())
+    tweet_list = list(tokens.keys())
+    tweet_token_list = list(tokens.values())
     for index in max_score_index:
-        print(">>> Max Score: {}".format(max_score))
+        print(">>> Max Score: {}\nTweets:".format(max_score))
         for tweet_index in clusters[index]:
             print("{}. {}".format(tweet_index, tweet_list[tweet_index]))
 
 
     # Top terms by clusters
-    _get_top_topics_by_clusters(scores, clusters, tweet_list)
+    top_topics = _get_top_topics_by_clusters(scores, clusters, tweet_token_list)
+    print("\nTop Topics:")
+    for index, top in enumerate(top_topics):
+        print("{}. {}".format(index + 1, top))
 
 
     #print("Features:\n", sim._features)
@@ -173,13 +177,19 @@ def run_tweet_processing():
     #print("Clusters:", clusters)
     print("No. of Clusters:", len(clusters))
 
+    # Saves result to a .csv file
+    _save_output(scores, clusters, tweet_list, top_topics)
+
 
 def _get_time(start, interval):
     return round(interval - ((time.time() - start) % interval))
 
 
 def _get_top_topics_by_clusters(scores, clusters, tweet_list, top=5):
-    """ Gets all top topics in each clusters. """
+    """
+    Gets all top topics in each clusters.
+    TODO: Implement similarity function (not just Counter).
+    """
     top_topics = []
     score_index = cs.get_score_index(scores)
     for i, _ in score_index:
@@ -197,10 +207,26 @@ def _get_top_topics_by_clusters(scores, clusters, tweet_list, top=5):
     return top_topics
 
 
+def _save_output(scores, clusters, tweets, topics):
+    """
+    Saves result in a file.
+    """
+    filename = 'out_{}_tweets_{}_clusters.txt'.format(len(tweets), len(clusters))
+
+    with open('data/out/' + filename, 'w') as out:
+        score_index = cs.get_score_index(scores)
+        for i, _ in score_index:
+            out.write('Cluster {}: {}'.format(
+                i+1, '[' + ', '.join(topics[i]) + ']'))
+            out.write('\n')
+            for j, tweet_index in enumerate(clusters[i]):
+                out.write('{}. {}'.format(j+1, tweets[tweet_index]))
+                out.write('\n')
+            out.write('\n')
 
 
 if __name__ == '__main__':
-    import sys
+   # import sys
 
    # if len(sys.argv) > 1:
    #     if sys.argv[1] in ('--stream-only', '-so'):
