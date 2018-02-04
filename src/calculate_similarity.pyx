@@ -26,13 +26,6 @@ cdef class Similarity:
         """
         Similarity class constructor.
         """
-        self.initialize(tokens)
-
-    def initialize(self, tokens):
-        """
-        Utility function to initialize and setup database connection and
-        get TF-IDF values of documents and its features.
-        """
         tfidf = TfidfVectorizer(tokenizer=lambda keys: tokens[keys])
         self.matrix = tfidf.fit_transform(tokens.keys()).A
 
@@ -62,9 +55,7 @@ cdef class Similarity:
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    cdef np.ndarray[DOUBLE_t, ndim=2] _similarity(self,
-            np.ndarray[DOUBLE_t, ndim=2] M1, np.ndarray[DOUBLE_t, ndim=2] M2,
-            int is_scoring):
+    cdef np.ndarray[DOUBLE_t, ndim=2] _similarity(self, np.ndarray[DOUBLE_t, ndim=2] M1, np.ndarray[DOUBLE_t, ndim=2] M2, int is_scoring):
         """
         Calculates similarity measure of each document matrix. Uses soft cosine
         similarity measure to calculate document similarities.
@@ -80,14 +71,12 @@ cdef class Similarity:
         for i in range(M1_len):
             for j in range(M2_len):
                 if is_scoring:
-                    doc_sim[i, j] = self._soft_cosine_similarity(M1[i],
-                                                                 M2[j])
+                    doc_sim[i, j] = self._soft_cosine_similarity(M1[i], M2[j])
                 else:
                     if i == j:
                         doc_sim[i, j] = 1.0
                     else:
-                        doc_sim[i, j] = self._soft_cosine_similarity(M1[i],
-                                                                     M2[j])
+                        doc_sim[i, j] = self._soft_cosine_similarity(M1[i], M2[j])
         return doc_sim
 
     def cos_similarity(self, M1=None, M2=None):
@@ -101,27 +90,27 @@ cdef class Similarity:
                 M2 = self.matrix
         return cosine_similarity(M1, M2)
 
-    cdef DOUBLE_t _multiply_elements(self, np.ndarray[DOUBLE_t, ndim=1] v1,
-            np.ndarray[DOUBLE_t, ndim=1] v2):
+    cdef DOUBLE_t _multiply_elements(self, np.ndarray[DOUBLE_t, ndim=1] v1, np.ndarray[DOUBLE_t, ndim=1] v2):
         """
         Multiplies values between vector elements and similarity function
         scores.
         """
         cdef:
+            DOUBLE_t score
             DOUBLE_t total_score = 0.0
             object v1nz = iter(v1.nonzero()[0])
             object v2nz = iter(v2.nonzero()[0])
-            int i, j
+            np.int64_t i, j
+            list features = self._features
 
         for i in v1nz:
             for j in v2nz:
-                total_score += v1[i] * v2[j] * self._get_score(
-                    self._features[i], self._features[j])
+                score = self._get_score(features[i], features[j])
+                total_score += v1[i] * v2[j] * score 
         return total_score
 
     @cython.cdivision(True)
-    cdef DOUBLE_t _soft_cosine_similarity(self, np.ndarray[DOUBLE_t, ndim=1] v1,
-            np.ndarray[DOUBLE_t, ndim=1] v2):
+    cdef DOUBLE_t _soft_cosine_similarity(self, np.ndarray[DOUBLE_t, ndim=1] v1, np.ndarray[DOUBLE_t, ndim=1] v2):
         """
         Soft Cosine Similarity Measure
         ------------------------------
