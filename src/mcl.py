@@ -85,7 +85,7 @@ def get_clusters(M):
 
 
 def cluster(M, exp_power=2, inf_power=2, iter_count=10,
-            pr_threshold=0.01):
+            pr_threshold=0.05):
     """
     Performs Markov Clustering Algorithm.
     Clusters matrix with the following steps:
@@ -97,7 +97,6 @@ def cluster(M, exp_power=2, inf_power=2, iter_count=10,
     """
     M = normalize(M)
     for i in range(iter_count):
-        # print("Iteration {}".format(i))
 
         prev_mat = M.copy()  # Copies last matrix for convergence check.
         M = expand(M, exp_power)
@@ -107,6 +106,5 @@ def cluster(M, exp_power=2, inf_power=2, iter_count=10,
             M = prune(M, pr_threshold)
 
         if check_convergence(M, prev_mat):
-            # print("Convergence found. Stopping loop...")
             break
     return M

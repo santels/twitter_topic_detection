@@ -17,13 +17,15 @@ def score(sim, cluster_mat, cluster_indices):
         final_score = get_final_score(e_size, r_deg)
         if final_score >= THRESHOLD:
             yield final_score
+        else:
+            yield 0.0
 
 
 def get_tweet_related_degree(sim, cluster_mat, cluster):
     """ Gets tweet related degree of a cluster. """
     centroid = get_centroid_vector(cluster, cluster_mat)
-    total = sum(sim(centroid, cluster_mat[i].reshape(1, centroid.shape[1]))
-                for i in cluster)
+    total = sum(sim(centroid, cluster_mat[i].reshape(1, centroid.shape[1]),
+            True) for i in cluster)
     return total[0, 0] / len(cluster)
 
 

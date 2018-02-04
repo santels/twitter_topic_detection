@@ -3,7 +3,6 @@ import json
 import spacy
 
 from collections import OrderedDict
-
 from stop_words import STOP_WORDS
 
 
@@ -64,7 +63,7 @@ class ManipulateTweet:
                   i.norm_ not in STOP_WORDS  and
                   "'" != i.norm_[0]          and
                   i.is_ascii                 and
-                  i.pos_ in ('NOUN', 'PROPN', 'VERB', 'NUM', 'SYM') and
+                  i.pos_ in ('NOUN', 'PROPN', 'NUM', 'SYM') and
                   not i.is_space]
 
         modified_tokens = []
