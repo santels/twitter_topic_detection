@@ -13,7 +13,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 conn = sqlite3.connect('.word_scores.db')
 cur = conn.cursor()
-THRESHOLD = 0.82
+THRESHOLD = 0.81
 
 
 cdef class Similarity:

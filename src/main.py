@@ -1,3 +1,4 @@
+import os
 import time
 import schedule
 import numpy as np
@@ -15,73 +16,79 @@ DEBUG = True
 
 class Main:
     """
-    Main entrypoint of the system; to be called by the GUI process.
+    Main entrypoint of the system; to be called by the GUI module.
     """
     def __init__(self):
         self.file_list = []
         self._clusters = []
         self._top_topics = []
+        self.time_limit = 0
         self._tweet_count = 0
-        self.STREAM_INTERVAL = 20
-        self.PROCESS_INTERVAL = 30
+        self.stream_interval = 0
+        self.process_interval = 0
+        self.show_graph = False
+        self.filename = None
 
-    def run(self, trigger='both'):
+    def run(self, trigger='both', filename=None):
         """
         Entry point of the program.
         """
+        if filename:
+            self.filename = filename
+
         schedule.clear()
         # Run streamer only
         if trigger == 'stream':
-            streamer = st.get_stream_instance()
-
-            schedule.every(self.STREAM_INTERVAL).minutes.do(self.run_streaming,
-                    streamer["tsl"], streamer["auth"])
-            while True:
+            schedule.every(self.stream_interval).minutes.do(self.run_streaming)
+            self.streamer = st.get_stream_instance()
+            while len(schedule.jobs) > 0:
                 schedule.run_pending()
+            print('Stream ended.')
 
         # Run tweet processor only
         elif trigger == 'process':
-            schedule.every(self.PROCESS_INTERVAL).minutes.do(self.run_tweet_processing)
-            while True:
+            schedule.every(self.process_interval).minutes.do(self.run_tweet_processing)
+            while len(schedule.jobs) > 0:
                 schedule.run_pending()
 
         # Run both streamer and tweet processor
         else:
-            streamer = st.get_stream_instance()
-            schedule.every(self.STREAM_INTERVAL).minutes.do(self.run_streaming,
-                    streamer["tsl"], streamer["auth"])
-            schedule.every(self.PROCESS_INTERVAL).minutes.do(self.run_tweet_processing)
-            while True:
+            self.streamer = st.get_stream_instance()
+            schedule.every(self.stream_interval).minutes.do(self.run_streaming)
+            schedule.every(self.process_interval).minutes.do(self.run_tweet_processing)
+            while len(schedule.jobs) > 0:
                 schedule.run_pending()
 
-    def run_streaming(self, tsl, auth):
+    def run_streaming(self):
         """
         Runs streaming process.
         """
         PH_GEOLOCATION = (116.15, 4.23, 127.64, 21.24)
-        timestr = time.strftime("%Y%m%d-%H%M")
-        tsl.pathname = 'data/td-' + timestr + '.txt'
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        self.streamer["tsl"] = st.TweetStreamListener(self.stream_interval)
+        self.streamer["tsl"].pathname = os.path.join('data', 'td-' + timestr + '.json')
+        self.file_list.append(self.streamer["tsl"].pathname)
+
         # Tries to reconnect to stream after IncompleteRead/ProtocolError
         # exceptions are caught.
         log_("Stream running...")
-        start = time.time()
-        while True:
+
+        # Connect/reconnect the stream
+        stream = st.Stream(self.streamer["auth"], self.streamer["tsl"])
+        running = True
+        while running:
             try:
-                # Connect/reconnect the stream
-                stream = Stream(auth, tsl)
                 log_("Getting samples...")
-                stream.sample()
-                if _get_time(start, STREAM_INTERVAL) == STREAM_INTERVAL:
-                    file_list.append(tsl.pathname)
-                    break
+                stream.filter(locations=PH_GEOLOCATION)
+                running = stream.running
+                if (time.time() - self.streamer["tsl"].start) >= self.time_limit:
+                    return schedule.CancelJob
             except (IncompleteRead, ProtocolError):
-                # Ignores exception and continues
                 continue
             except KeyboardInterrupt:
-                # Exits loop
-                log_("Stream ended.")
                 stream.disconnect()
                 break
+
 
     def run_tweet_processing(self):
         """
@@ -245,18 +252,19 @@ class Main:
         if len(self.file_list) > 0:
             tweets_data_path = self.file_list[-1]
         else:
-            tweets_data_path = 'data/tweets_data_3.txt' # default for now
+            tweets_data_path = self.filename or os.path.join('data', 'td-20180207-205652.json')
+
 
         start = time.time()
         manip_tweet = ManipulateTweet()
 
-        documents = [manip_tweet._clean_tweet(d) for d in documents]
-        #tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
-        #tweets = manip_tweet.preprocess_tweet(tweets_data)
+        #documents = [manip_tweet._clean_tweet(d) for d in documents]
+        tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
+        tweets = manip_tweet.preprocess_tweet(tweets_data)
 
         log_("Tokenizing...")
-        #tokens = manip_tweet.tokenize_tweets(tweets[900:950])
-        tokens = manip_tweet.tokenize_tweets(documents)
+        tokens = manip_tweet.tokenize_tweets(tweets)
+        #tokens = manip_tweet.tokenize_tweets(documents)
         log_("Tokenization completed!")
         self._tweet_count = len(tokens)
         log_("No. of tokenized tweets: {}".format(self._tweet_count))
@@ -266,8 +274,8 @@ class Main:
         log_("Getting similarity between tweets...")
         sim = Similarity(tokens)
         log_("No. of Features: {}".format(len(sim.get_features())))
-        #score_matrix = sim.cos_similarity() # Cosine similarity
-        score_matrix = sim.similarity()    # Soft cosine similarity
+        similarity_func = sim.similarity
+        score_matrix = similarity_func()    # Soft cosine similarity
         log_("Similarity function operation completed!")
         sm_time = _elapsed_time(tk_time)
 
@@ -275,14 +283,17 @@ class Main:
         log_("Clustering...")
         matrix = mcl.cluster(score_matrix, iter_count=1000)
         clusters, matrix = mcl.get_clusters(matrix)
-        #mcl.draw(matrix, clusters)
+
+        if self.show_graph:
+            mcl.draw(matrix, clusters, cmap='plasma')
+
         log_("Clustering finished!")
         cl_time = _elapsed_time(sm_time)
         self._clusters = clusters
 
         # Cluster scoring
         log_("Scoring...")
-        scores = list(cs.score(sim.similarity, matrix, clusters))
+        scores = list(cs.score(similarity_func, matrix, clusters))
         max_score = max(scores)
         max_score_index = list(cs.get_max_score_index(scores))
         log_("Scoring finished!")
@@ -301,7 +312,7 @@ class Main:
 
         # Top terms by clusters
         top_topics = self._get_top_topics_by_clusters(scores, clusters, tweet_token_list,
-                score_index)
+                score_index, top=10)
         log_("\nTop Topics:")
         self._top_topics = []
         for index, top in enumerate(top_topics):
@@ -315,7 +326,12 @@ class Main:
         log_("No. of Clusters: {}".format(len(clusters)))
 
         # Saves result to a file
-        # self._save_output(scores, clusters, tweet_list, top_topics, score_index, 'soft')
+        #self._save_output(scores, clusters, tweet_list, top_topics, score_index, 'hard')
+
+        if len(self.file_list) > 0:
+            del self.file_list[-1]
+        else:
+            return schedule.CancelJob
 
     def _get_top_topics_by_clusters(self, scores, clusters, tweet_list, score_index, top=5):
         """
@@ -364,24 +380,10 @@ def _elapsed_time(start):
     return ft
 
 
-def _get_time(start, interval):
-    return round(interval - ((time.time() - start) % interval))
-
 def log_(text):
     if DEBUG:
         print(text)
 
 
 if __name__ == '__main__':
-   # import sys
-
-   # if len(sys.argv) > 1:
-   #     if sys.argv[1] in ('--stream-only', '-so'):
-   #         run('stream')
-   #     elif sys.argv[1] in ('--process-only', '-po'):
-   #         run('process')
-   #     else:
-   #         run()
-   # else:
-   #     run()
-    run_tweet_processing()
+    Main().run_tweet_processing()

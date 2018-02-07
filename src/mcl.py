@@ -47,7 +47,7 @@ def prune(M, threshold):
     return pruned_mat
 
 
-def draw(M, clusters, node_size=50, with_labels=False):
+def draw(M, clusters, node_size=35, with_labels=False, cmap='cool'):
     """
     Draws and shows clusters created after clustering.
     """
@@ -61,7 +61,7 @@ def draw(M, clusters, node_size=50, with_labels=False):
     colors = [cluster_map[i] for i in range(len(graph.nodes()))]
 
     nx.draw_networkx_nodes(graph, pos, node_color=colors, node_size=node_size,
-                           with_labels=False)
+                           with_labels=False, cmap=cmap)
     nx.draw_networkx_edges(graph, pos, alpha=0.5, edge_color="silver")
     axis("off")
     show(block=True)
@@ -85,7 +85,7 @@ def get_clusters(M):
 
 
 def cluster(M, exp_power=2, inf_power=2, iter_count=10,
-            pr_threshold=0.05):
+            pr_threshold=0.01):
     """
     Performs Markov Clustering Algorithm.
     Clusters matrix with the following steps:

@@ -15,9 +15,7 @@ class SemanTopic(QMainWindow):
     def __init__(self):
         super().__init__()
         self.main = Main()
-        self.tweet_ncount_lbl = QLabel('0')
-        self.cluster_ncount_lbl = QLabel('0')
-        self.textEdit = QTextEdit()
+        self.proc_file = None
 
         self.init_ui()
 
@@ -39,17 +37,42 @@ class SemanTopic(QMainWindow):
 
         #VBox
         #Stream Time Label
-        strtmLbl = QLabel('Stream Time (minutes): ')
-        strtmLbl.setFont(bold_font)
+        str_time_lbl = QLabel('Stream Time (minutes): ')
+        str_time_lbl.setFont(bold_font)
+
+        str_int_lbl = QLabel('Stream Interval (minutes): ')
+        str_int_lbl.setFont(bold_font)
+
+        proc_int_lbl = QLabel('Process Interval (minutes): ')
+        proc_int_lbl.setFont(bold_font)
 
         #Spinner
-        spinBox = QSpinBox()
+        self.str_time = QDoubleSpinBox()
+        self.str_time.setMinimum(0.0)
+        self.str_time.valueChanged.connect(lambda: self._set_time_limit(self.str_time.value()))
+
+        self.str_interval = QDoubleSpinBox()
+        self.str_interval.setMinimum(0.0)
+        self.str_interval.valueChanged.connect(lambda: self._set_stream_interval(self.str_interval.value()))
+
+        self.pr_interval = QDoubleSpinBox()
+        self.pr_interval.setMinimum(0.0)
+        self.pr_interval.valueChanged.connect(lambda: self._set_process_interval(self.pr_interval.value()))
+
+        # Show graph checkbox
+        self.show_graph = QCheckBox('Show Graph')
+        self.show_graph.stateChanged.connect(self._set_show_graph)
 
         #First Grid Layout
         #row column rowspan columnspan
-        grdLayout = QGridLayout()
-        grdLayout.addWidget(strtmLbl, 1, 1)
-        grdLayout.addWidget(spinBox, 1, 2, 1, 1)
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(str_time_lbl, 1, 1)
+        grid_layout.addWidget(str_int_lbl, 2, 1)
+        grid_layout.addWidget(proc_int_lbl, 3, 1)
+        grid_layout.addWidget(self.str_time, 1, 2, 1, 1)
+        grid_layout.addWidget(self.str_interval, 2, 2, 1, 1)
+        grid_layout.addWidget(self.pr_interval, 3, 2, 1, 1)
+        grid_layout.addWidget(self.show_graph, 4, 1)
 
         #Stream Button
         stream_btn = QPushButton('Stream Tweets Only')
@@ -68,12 +91,12 @@ class SemanTopic(QMainWindow):
                     QPushButton:hover   { background: rgb(30,144,255); }
                     QPushButton:pressed { background: rgb(30,115,255); }''')
 
-        stream_btn.clicked.connect(QCoreApplication.instance().quit)
+        stream_btn.clicked.connect(self._stream_tweets)
 
         #Process Tweets
-        prss_btn = QPushButton('Process Tweets Only')
-        prss_btn.setToolTip('Process Tweets')
-        prss_btn.setStyleSheet(
+        process_btn = QPushButton('Process Tweets Only')
+        process_btn.setToolTip('Process Tweets')
+        process_btn.setStyleSheet(
                 '''QPushButton
                    {
                         background: rgb(30,110,255);
@@ -86,7 +109,7 @@ class SemanTopic(QMainWindow):
                     }
                     QPushButton:hover   { background: rgb(30,144,255); }
                     QPushButton:pressed { background: rgb(30,115,255); }''')
-        prss_btn.clicked.connect(self._process_tweets)
+        process_btn.clicked.connect(self._process_tweets)
 
         #Icon
         saveIcon = QIcon()
@@ -108,21 +131,22 @@ class SemanTopic(QMainWindow):
                     }
                     QPushButton:hover   { background: rgb(30,144,255); }
                     QPushButton:pressed { background: rgb(30,115,255); }''')
-
+        open_btn.clicked.connect(self.open_file)
 
         #Filename Label
-        fileLbl = QLabel('fileName.txt')
-        fileLbl.setAlignment(Qt.AlignCenter)
+        self.file_lbl = QLabel('filename.txt/json')
+        self.file_lbl.setAlignment(Qt.AlignCenter)
+        self.file_lbl.setWordWrap(True)
 
         #Second Grid Layout
         openLayout = QGridLayout()
         openLayout.addWidget(open_btn, 0, 0)
-        openLayout.addWidget(fileLbl, 0, 1)
+        openLayout.addWidget(self.file_lbl, 0, 1)
 
         #Stream and Process Tweets
-        strprss_btn = QPushButton('Stream and Process Tweets')
-        strprss_btn.setToolTip('Steam and Process')
-        strprss_btn.setStyleSheet(
+        str_proc_btn = QPushButton('Stream and Process Tweets')
+        str_proc_btn.setToolTip('Steam and Process')
+        str_proc_btn.setStyleSheet(
                 '''QPushButton
                    {
                         background: rgb(30,110,255);
@@ -135,27 +159,31 @@ class SemanTopic(QMainWindow):
                     }
                     QPushButton:hover   { background: rgb(30,144,255); }
                     QPushButton:pressed { background: rgb(30,115,255); }''')
+        str_proc_btn.clicked.connect(self._stream_tweets)
 
         #VBox2
         tweet_count_lbl = QLabel('No. of Tweets:')
+        self.tweet_ncount_lbl = QLabel('0')
         tweet_count_lbl.setFont(bold_font)
 
         cluster_count_lbl = QLabel('No. of Cluster/s:')
+        self.cluster_ncount_lbl = QLabel('0')
         cluster_count_lbl.setFont(bold_font)
 
         #Third Grid Layout
-        grdLayout3 = QGridLayout()
-        grdLayout3.addWidget(tweet_count_lbl, 0, 0)
-        grdLayout3.addWidget(self.tweet_ncount_lbl, 0, 1)
-        grdLayout3.addWidget(cluster_count_lbl, 0, 2)
-        grdLayout3.addWidget(self.cluster_ncount_lbl, 0, 3)
-        grdLayout3.setContentsMargins(10, 0, 0, 0)
+        grid_layout3 = QGridLayout()
+        grid_layout3.addWidget(tweet_count_lbl, 0, 0)
+        grid_layout3.addWidget(self.tweet_ncount_lbl, 0, 1)
+        grid_layout3.addWidget(cluster_count_lbl, 0, 2)
+        grid_layout3.addWidget(self.cluster_ncount_lbl, 0, 3)
+        grid_layout3.setContentsMargins(10, 0, 0, 0)
 
         #Group Box and Text Area
-        tpGroupBox = QGroupBox("Top Topic/s Detected")
+        top_group_box = QGroupBox("Top Topic/s Detected")
 
-        self.textEdit.setReadOnly(True)
-        self.textEdit.setStyleSheet(
+        self.text_area = QTextEdit()
+        self.text_area.setReadOnly(True)
+        self.text_area.setStyleSheet(
             '''QTextEdit
                {
                     background-image: url('resources/graph-icon-gray.png');
@@ -165,32 +193,32 @@ class SemanTopic(QMainWindow):
                     border: 1 solid gray;
                 }''')
 
-        txtEditGrid = QGridLayout()
-        txtEditGrid.addWidget(self.textEdit, 1, 0, 1, 1)
+        text_area_grid = QGridLayout()
+        text_area_grid.addWidget(self.text_area, 1, 0, 1, 1)
 
-        tpGroupBox.setLayout(txtEditGrid)
+        top_group_box.setLayout(text_area_grid)
 
         #VBox1
-        vbox.addLayout(grdLayout)
+        vbox.addLayout(grid_layout)
         vbox.addWidget(stream_btn)
-        vbox.addWidget(prss_btn)
+        vbox.addWidget(process_btn)
         vbox.addLayout(openLayout)
-        vbox.addWidget(strprss_btn)
+        vbox.addWidget(str_proc_btn)
         vbox.setContentsMargins(0, 0, 10, 0)
 
         #VBox2
-        vbox2.addWidget(tpGroupBox)
-        vbox2.addLayout(grdLayout3)
+        vbox2.addWidget(top_group_box)
+        vbox2.addLayout(grid_layout3)
 
         #Main Layout
-        mainGrid = QGridLayout()
-        mainGrid.setSpacing(10)
+        main_grid = QGridLayout()
+        main_grid.setSpacing(10)
 
-        mainGrid.addLayout(vbox, 1, 1)
-        mainGrid.addLayout(vbox2, 1, 2, 1, 1)
-        #mainGrid.addLayout(vbox3, 1, 2)
+        main_grid.addLayout(vbox, 1, 1)
+        main_grid.addLayout(vbox2, 1, 2, 1, 1)
+        #main_grid.addLayout(vbox3, 1, 2)
 
-        main_widget.setLayout(mainGrid)
+        main_widget.setLayout(main_grid)
         main_widget.setContentsMargins(10, 10, 10, 20)
 
         #Main Window
@@ -208,14 +236,25 @@ class SemanTopic(QMainWindow):
         win.moveCenter(resoScreen)
         self.move(win.topLeft())
 
+    def open_file(self):
+        """ Creates open file dialog box to choose source text file. """
+
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'Text or JSON file (*.txt *.json)')
+
+        if filename:
+            self.file_lbl.setText(filename)
+            self.main.file_list.append(filename)
+            self.proc_file = filename
+
     def _process_tweets(self):
+        """ Calls process tweets module. """
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.main.run_tweet_processing()
+        self.main.run('process', filename=self.proc_file)
 
         self.tweet_ncount_lbl.setText(str(self.main._tweet_count))
         self.cluster_ncount_lbl.setText(str(len(self.main._clusters)))
-        self.textEdit.setText('\n'.join(self.main._top_topics))
-        self.textEdit.setStyleSheet(
+        self.text_area.setText('\n'.join(self.main._top_topics))
+        self.text_area.setStyleSheet(
             '''QTextEdit
                {
                     font-size: 14px;
@@ -226,9 +265,35 @@ class SemanTopic(QMainWindow):
                 }''')
         QApplication.restoreOverrideCursor()
 
+    def _stream_tweets(self):
+        """ Calls stream tweets module. """
+        if self.str_interval.value() > 0 and self.str_time.value() > 0:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            self.main.run('stream')
+            QApplication.restoreOverrideCursor()
+        else:
+            QMessageBox.critical(self, 'Error',
+                'Stream Limit and Interval must be greater than 0.', QMessageBox.Ok)
+
+    def _set_time_limit(self, time):
+        self.main.time_limit = time * 60
+
+    def _set_show_graph(self):
+        self.main.show_graph = self.show_graph.isChecked()
+
+    def _set_stream_interval(self, interval):
+        if (self.main.time_limit / 60) < interval:
+            self.main.stream_interval = self.main.time_limit / 60
+            self.str_interval.setValue(self.main.time_limit / 60)
+        else:
+            self.main.stream_interval = interval
+
+    def _set_process_interval(self, interval):
+        self.main.process_interval = interval
+
     def closeEvent(self, event):
-        quitReply = QMessageBox.question(self, 'Message',
-            "Are you sure?", QMessageBox.Yes | QMessageBox.No,
+        quitReply = QMessageBox.question(self, 'Warning',
+            'Are you sure?', QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No)
         if quitReply == QMessageBox.Yes:
             event.accept()

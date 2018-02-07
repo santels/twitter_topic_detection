@@ -9495,7 +9495,7 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * conn = sqlite3.connect('.word_scores.db')             # <<<<<<<<<<<<<<
  * cur = conn.cursor()
- * THRESHOLD = 0.82
+ * THRESHOLD = 0.81
  */
   __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_word_scores_db); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
@@ -9809,7 +9809,7 @@ static int __pyx_pymod_exec_calculate_similarity(PyObject *__pyx_pyinit_module)
  * 
  * conn = sqlite3.connect('.word_scores.db')             # <<<<<<<<<<<<<<
  * cur = conn.cursor()
- * THRESHOLD = 0.82
+ * THRESHOLD = 0.81
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sqlite3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -9828,7 +9828,7 @@ static int __pyx_pymod_exec_calculate_similarity(PyObject *__pyx_pyinit_module)
  * 
  * conn = sqlite3.connect('.word_scores.db')
  * cur = conn.cursor()             # <<<<<<<<<<<<<<
- * THRESHOLD = 0.82
+ * THRESHOLD = 0.81
  * 
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_20calculate_similarity_conn, __pyx_n_s_cursor); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
@@ -9859,11 +9859,11 @@ static int __pyx_pymod_exec_calculate_similarity(PyObject *__pyx_pyinit_module)
   /* "calculate_similarity.pyx":16
  * conn = sqlite3.connect('.word_scores.db')
  * cur = conn.cursor()
- * THRESHOLD = 0.82             # <<<<<<<<<<<<<<
+ * THRESHOLD = 0.81             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_v_20calculate_similarity_THRESHOLD = 0.82;
+  __pyx_v_20calculate_similarity_THRESHOLD = 0.81;
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_Similarity(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
