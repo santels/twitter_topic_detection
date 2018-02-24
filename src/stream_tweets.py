@@ -6,6 +6,7 @@ from tweepy import OAuthHandler
 from tweepy import Stream
 from tweepy.streaming import StreamListener
 
+from random import random
 from datetime import datetime
 from http.client import IncompleteRead
 from urllib3.exceptions import ProtocolError
@@ -58,10 +59,12 @@ class TweetStreamListener(StreamListener):
             try:
                 # Save streamed tweets to "data" folder
                 with open(self.pathname, 'a') as td:
-                    # If tweet language is English, save
-                    if (status.lang is not None and status.lang == 'en'):
-                        td.write(json.dumps(status._json))
-                        td.write('\n')
+                    # If tweet language is English, save; 50% chance that it
+                    # will save a tweet to lessen the streamed tweets.
+                    if random() >= 0.5:
+                        if (status.lang is not None and status.lang == 'en'):
+                            td.write(json.dumps(status._json))
+                            td.write('\n')
                 return True
             except BaseException as e:
                 print("[ERROR] on_status: {}".format(e))

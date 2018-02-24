@@ -64,6 +64,7 @@ class Main:
         Runs streaming process.
         """
         PH_GEOLOCATION = (116.15, 4.23, 127.64, 21.24)
+        US_GEOLOCATION = (-141.2, 27.9, -60.7, 57.2)
         timestr = time.strftime("%Y%m%d-%H%M%S")
         self.streamer["tsl"] = st.TweetStreamListener(self.stream_interval)
         self.streamer["tsl"].pathname = os.path.join('data', 'td-' + timestr + '.json')
@@ -79,7 +80,7 @@ class Main:
         while running:
             try:
                 log_("Getting samples...")
-                stream.filter(locations=PH_GEOLOCATION)
+                stream.filter(locations=US_GEOLOCATION)
                 running = stream.running
                 if (time.time() - self.streamer["tsl"].start) >= self.time_limit:
                     return schedule.CancelJob
