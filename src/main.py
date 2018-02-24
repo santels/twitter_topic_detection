@@ -258,13 +258,17 @@ class Main:
         start = time.time()
         manip_tweet = ManipulateTweet()
 
-        #documents = [manip_tweet._clean_tweet(d) for d in documents]
-        tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
-        tweets = manip_tweet.preprocess_tweet(tweets_data)
+        if self.filename:
+            tweets_data = manip_tweet.load_tweets_data(tweets_data_path)
+            tweets = manip_tweet.preprocess_tweet(tweets_data)
+        else:
+            documents = [manip_tweet._clean_tweet(d) for d in documents]
 
         log_("Tokenizing...")
-        tokens = manip_tweet.tokenize_tweets(tweets)
-        #tokens = manip_tweet.tokenize_tweets(documents)
+        if self.filename:
+            tokens = manip_tweet.tokenize_tweets(tweets)
+        else:
+            tokens = manip_tweet.tokenize_tweets(documents)
         log_("Tokenization completed!")
         self._tweet_count = len(tokens)
         log_("No. of tokenized tweets: {}".format(self._tweet_count))

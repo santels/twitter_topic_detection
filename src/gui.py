@@ -159,7 +159,7 @@ class SemanTopic(QMainWindow):
                     }
                     QPushButton:hover   { background: rgb(30,144,255); }
                     QPushButton:pressed { background: rgb(30,115,255); }''')
-        str_proc_btn.clicked.connect(self._stream_tweets)
+        str_proc_btn.clicked.connect(self._strproc_tweets)
 
         #VBox2
         tweet_count_lbl = QLabel('No. of Tweets:')
@@ -274,6 +274,17 @@ class SemanTopic(QMainWindow):
         else:
             QMessageBox.critical(self, 'Error',
                 'Stream Limit and Interval must be greater than 0.', QMessageBox.Ok)
+
+    def _strproc_tweets(self):
+        """ Calls stream and process tweets module. """
+        if self.str_interval.value() > 0 and self.str_time.value() > 0:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            self.main.run()
+            QApplication.restoreOverrideCursor()
+        else:
+            QMessageBox.critical(self, 'Error',
+                'Stream Limit and Interval must be greater than 0.', QMessageBox.Ok)
+ 
 
     def _set_time_limit(self, time):
         self.main.time_limit = time * 60
