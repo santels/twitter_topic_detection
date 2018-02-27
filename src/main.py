@@ -331,7 +331,7 @@ class Main:
         log_("No. of Clusters: {}".format(len(clusters)))
 
         # Saves result to a file
-        #self._save_output(scores, clusters, tweet_list, top_topics, score_index, 'hard')
+        self._save_output(scores, clusters, tweet_list, top_topics, score_index, 'soft')
 
         if len(self.file_list) > 0:
             del self.file_list[-1]

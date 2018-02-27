@@ -1,4 +1,5 @@
 import numpy as np
+import sklearn.preprocessing
 
 
 """
@@ -12,7 +13,7 @@ def normalize(M):
     """
     Normailizes matrix to get transition matrix.
     """
-    return M/np.sum(M, axis=0)
+    return sklearn.preprocessing.normalize(M, norm="l1", axis=0)
 
 
 def expand(M, power):
