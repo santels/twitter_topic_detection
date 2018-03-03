@@ -53,8 +53,8 @@ class TweetStreamListener(StreamListener):
         """
         Retrieves tweet data and writes it to file.
         """
-        self.count += 1
         if (time.time() - self.start) < self.interval:
+            self.count += 1
             print('Fetching tweets... Got {} tweets.'.format(self.count))
             try:
                 # Save streamed tweets to "data" folder

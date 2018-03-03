@@ -47,9 +47,7 @@ class Main:
 
         # Run tweet processor only
         elif trigger == 'process':
-            schedule.every(self.process_interval).minutes.do(self.run_tweet_processing)
-            while len(schedule.jobs) > 0:
-                schedule.run_pending()
+            self.run_tweet_processing()
 
         # Run both streamer and tweet processor
         else:
@@ -279,7 +277,7 @@ class Main:
         log_("Getting similarity between tweets...")
         sim = Similarity(tokens)
         log_("No. of Features: {}".format(len(sim.get_features())))
-        similarity_func = sim.similarity
+        similarity_func = sim.cos_similarity
         score_matrix = similarity_func()    # Soft cosine similarity
         log_("Similarity function operation completed!")
         sm_time = _elapsed_time(tk_time)
@@ -289,8 +287,9 @@ class Main:
         matrix = mcl.cluster(score_matrix, iter_count=1000)
         clusters, matrix = mcl.get_clusters(matrix)
 
+        tweet_list = list(tokens.keys())
         if self.show_graph:
-            mcl.draw(matrix, clusters, cmap='plasma')
+            mcl.draw(matrix, clusters, tweet_list)
 
         log_("Clustering finished!")
         cl_time = _elapsed_time(sm_time)
@@ -304,13 +303,11 @@ class Main:
         log_("Scoring finished!")
         _elapsed_time(cl_time)
 
-        tweet_list = list(tokens.keys())
         tweet_token_list = list(tokens.values())
         for index in max_score_index:
             log_(">>> Max Score: {}\nTweets:".format(max_score))
             for tweet_index in clusters[index]:
                 log_("{}. {}".format(tweet_index, tweet_token_list[tweet_index]))
-
 
         # Gets clusters' indices by their scores
         score_index = cs.get_score_index(scores, len(scores))
@@ -331,7 +328,7 @@ class Main:
         log_("No. of Clusters: {}".format(len(clusters)))
 
         # Saves result to a file
-        self._save_output(scores, clusters, tweet_list, top_topics, score_index, 'soft')
+        #self._save_output(scores, clusters, tweet_list, top_topics, score_index, 'hard')
 
         if len(self.file_list) > 0:
             del self.file_list[-1]

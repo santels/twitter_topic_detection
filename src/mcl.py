@@ -48,22 +48,37 @@ def prune(M, threshold):
     return pruned_mat
 
 
-def draw(M, clusters, node_size=35, with_labels=False, cmap='cool'):
+def draw(M, clusters, tweet_list, node_size=55, with_labels=True):
     """
     Draws and shows clusters created after clustering.
     """
     import networkx as nx
+    import mplcursors
+    import matplotlib.pyplot as plt
     from matplotlib.pylab import show, axis
 
     graph = nx.Graph(M)
-    pos = nx.spring_layout(graph)
-    cluster_map = {node: i for i, cluster in enumerate(clusters)
-                   for node in cluster}
-    colors = [cluster_map[i] for i in range(len(graph.nodes()))]
+    pos = nx.spring_layout(graph, k=0.2)
+    plt.figure('Output Graphs')
+    plt.title('Clustered Graphs')
+    #cluster_map = {node: i for i, cluster in enumerate(clusters)
+    #               for node in cluster}
 
-    nx.draw_networkx_nodes(graph, pos, node_color=colors, node_size=node_size,
-                           with_labels=False, cmap=cmap)
-    nx.draw_networkx_edges(graph, pos, alpha=0.5, edge_color="silver")
+    labels = [tweet_list[node] for node in graph.nodes()]
+
+    nx.draw_networkx_nodes(graph, pos, node_color='red', node_size=node_size,
+                           with_labels=with_labels)
+    nx.draw_networkx_edges(graph, pos, alpha=0.8, edge_color="silver", width='2')
+
+    def show_label(sel, label):
+        index = sel.target.index
+        if not isinstance(index, tuple):
+            return sel.annotation.set_text(label[index])
+
+    mplcursors.cursor(hover=True).connect(
+        "add", lambda sel: show_label(sel, labels)
+    )
+    plt.show()
     axis("off")
     show(block=True)
 
@@ -86,7 +101,7 @@ def get_clusters(M):
 
 
 def cluster(M, exp_power=2, inf_power=2, iter_count=10,
-            pr_threshold=0.01):
+            pr_threshold=0.001):
     """
     Performs Markov Clustering Algorithm.
     Clusters matrix with the following steps:
